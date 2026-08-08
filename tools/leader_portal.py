@@ -1,5 +1,4 @@
 import streamlit as st
-import streamlit.components.v1 as components
 import sqlite3
 import pandas as pd
 import base64
@@ -29,9 +28,9 @@ def extract_coords_from_link(link):
     # If it's a shortlink, resolve it to get the full URL
     if 'goo.gl' in link or 'maps.app.goo.gl' in link:
         try:
-            req = urllib.request.Request(link, method='HEAD')
-            resp = urllib.request.urlopen(req, timeout=5)
-            link = resp.url
+            req = urllib.request.Request(link, headers={'User-Agent': 'Mozilla/5.0'})
+            resp = urllib.request.urlopen(req, timeout=10)
+            link = resp.geturl() # Gets the final redirected URL
         except:
             pass
             
@@ -41,6 +40,8 @@ def extract_coords_from_link(link):
     match = re.search(r'q=(-?\d+\.\d+),(-?\d+\.\d+)', link)
     if match: return float(match.group(1)), float(match.group(2))
     match = re.search(r'!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)', link)
+    if match: return float(match.group(1)), float(match.group(2))
+    match = re.search(r'center=(-?\d+\.\d+),(-?\d+\.\d+)', link)
     if match: return float(match.group(1)), float(match.group(2))
     return None, None
 
@@ -176,38 +177,44 @@ def render_portal():
             new_wilaya = st.selectbox(t['select_wilaya'], list(ALGERIAN_WILAYAS.keys()), index=list(ALGERIAN_WILAYAS.keys()).index(team.get('wilaya')) if team.get('wilaya') in ALGERIAN_WILAYAS else 0)
             update_lat, update_lon = ALGERIAN_WILAYAS[new_wilaya]
             
-            # --- GPS BUTTON BACK ---
+            # --- BULLETPROOF GPS BUTTON (Custom iframe with geolocation permission) ---
             st.markdown(f"##### 📍 {t['get_gps']}")
-            components.html(f"""
-            <button onclick="getStatusGPS()" style="width:100%; padding:12px; border-radius:8px; border:none; background:linear-gradient(90deg, #4facfe 0%, #00f2fe 100%); color:white; font-weight:600; cursor:pointer;">{t['get_gps']}</button>
-            <p id="status-gps-msg" style="text-align:center; margin-top:10px; font-weight:bold;"></p>
-            <script>
-                function getStatusGPS() {{
-                    const msg = document.getElementById('status-gps-msg');
-                    msg.innerText = "Locating... Please wait";
-                    msg.style.color = "blue";
-                    if (!navigator.geolocation) {{
-                        msg.innerText = "GPS not supported. Use link below.";
-                        msg.style.color = "red"; return;
+            st.markdown(f"""
+            <iframe srcdoc="
+                <html><body style='margin:0;padding:0;'>
+                <button onclick='getStatusGPS()' style='width:100%; padding:12px; border-radius:8px; border:none; background:linear-gradient(90deg, #4facfe 0%, #00f2fe 100%); color:white; font-weight:600; cursor:pointer;'>{t['get_gps']}</button>
+                <p id='status-msg' style='text-align:center; font-family:sans-serif; margin-top:5px; font-weight:bold;'></p>
+                <script>
+                    function getStatusGPS() {{
+                        const msg = document.getElementById('status-msg');
+                        msg.innerText = 'Locating... Please wait';
+                        msg.style.color = 'blue';
+                        if (!navigator.geolocation) {{
+                            msg.innerText = 'GPS not supported. Use link below.';
+                            msg.style.color = 'red'; return;
+                        }}
+                        navigator.geolocation.getCurrentPosition(
+                            (pos) => {{
+                                const lat = pos.coords.latitude;
+                                const lon = pos.coords.longitude;
+                                const url = new URL(window.parent.location.href);
+                                url.searchParams.set('gps_lat', lat);
+                                url.searchParams.set('gps_lon', lon);
+                                window.parent.location.href = url.href;
+                            }},
+                            (err) => {{
+                                if (err.code === 1) msg.innerText = 'Permission Denied. Use link below.';
+                                else if (err.code === 3) msg.innerText = 'Timeout. Use link below.';
+                                else msg.innerText = 'Error. Use link below.';
+                                msg.style.color = 'red';
+                            }},
+                            {{ enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }}
+                        );
                     }}
-                    navigator.geolocation.getCurrentPosition(
-                        (pos) => {{
-                            const url = new URL(window.parent.location.href);
-                            url.searchParams.set('gps_lat', pos.coords.latitude);
-                            url.searchParams.set('gps_lon', pos.coords.longitude);
-                            window.parent.location.href = url.href;
-                        }},
-                        (err) => {{
-                            if (err.code === 1) msg.innerText = "Permission Denied. Use link below.";
-                            else if (err.code === 3) msg.innerText = "Timeout. Use link below.";
-                            else msg.innerText = "Error. Use link below.";
-                            msg.style.color = "red";
-                        }},
-                        {{ enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }}
-                    );
-                }}
-            </script>
-            """, height=120)
+                </script>
+                </body></html>"
+                allow="geolocation" style="width:100%; height:90px; border:none;"></iframe>
+            """, unsafe_allow_html=True)
             
             if 'gps_lat' in st.query_params:
                 update_lat = float(st.query_params['gps_lat'])
@@ -250,38 +257,44 @@ def render_portal():
         task_notes = st.text_area(t['task_notes'])
         uploaded_file = st.file_uploader(t['task_photo'], type=['jpg', 'jpeg', 'png'])
         
-        # --- GPS BUTTON BACK ---
+        # --- BULLETPROOF GPS BUTTON (Custom iframe with geolocation permission) ---
         st.markdown(f"##### 📍 {t['get_gps']}")
-        components.html(f"""
-        <button onclick="getTaskGPS()" style="width:100%; padding:12px; border-radius:8px; border:none; background:#0078D7; color:white; font-weight:600; cursor:pointer;">📍 {t['get_gps']}</button>
-        <p id="task-gps-msg" style="text-align:center; margin-top:10px; font-weight:bold;"></p>
-        <script>
-            function getTaskGPS() {{
-                const msg = document.getElementById('task-gps-msg');
-                msg.innerText = "Locating... Please wait";
-                msg.style.color = "blue";
-                if (!navigator.geolocation) {{
-                    msg.innerText = "GPS not supported. Use link below.";
-                    msg.style.color = "red"; return;
-                }}
-                navigator.geolocation.getCurrentPosition(
-                    (pos) => {{
-                        const url = new URL(window.parent.location.href);
-                        url.searchParams.set('task_lat', pos.coords.latitude);
-                        url.searchParams.set('task_lon', pos.coords.longitude);
-                        window.parent.location.href = url.href;
-                    }},
-                    (err) => {{
-                        if (err.code === 1) msg.innerText = "Permission Denied. Use link below.";
-                        else if (err.code === 3) msg.innerText = "Timeout. Use link below.";
-                        else msg.innerText = "Error. Use link below.";
-                        msg.style.color = "red";
-                    }},
-                    {{ enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }}
-                );
-            }}
-        </script>
-        """, height=120)
+        st.markdown(f"""
+            <iframe srcdoc="
+                <html><body style='margin:0;padding:0;'>
+                <button onclick='getTaskGPS()' style='width:100%; padding:12px; border-radius:8px; border:none; background:#0078D7; color:white; font-weight:600; cursor:pointer;'>📍 {t['get_gps']}</button>
+                <p id='task-msg' style='text-align:center; font-family:sans-serif; margin-top:5px; font-weight:bold;'></p>
+                <script>
+                    function getTaskGPS() {{
+                        const msg = document.getElementById('task-msg');
+                        msg.innerText = 'Locating... Please wait';
+                        msg.style.color = 'blue';
+                        if (!navigator.geolocation) {{
+                            msg.innerText = 'GPS not supported. Use link below.';
+                            msg.style.color = 'red'; return;
+                        }}
+                        navigator.geolocation.getCurrentPosition(
+                            (pos) => {{
+                                const lat = pos.coords.latitude;
+                                const lon = pos.coords.longitude;
+                                const url = new URL(window.parent.location.href);
+                                url.searchParams.set('task_lat', lat);
+                                url.searchParams.set('task_lon', lon);
+                                window.parent.location.href = url.href;
+                            }},
+                            (err) => {{
+                                if (err.code === 1) msg.innerText = 'Permission Denied. Use link below.';
+                                else if (err.code === 3) msg.innerText = 'Timeout. Use link below.';
+                                else msg.innerText = 'Error. Use link below.';
+                                msg.style.color = 'red';
+                            }},
+                            {{ enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }}
+                        );
+                    }}
+                </script>
+                </body></html>"
+                allow="geolocation" style="width:100%; height:90px; border:none;"></iframe>
+        """, unsafe_allow_html=True)
         
         task_lat, task_lon = None, None
         if 'task_lat' in st.query_params:
@@ -300,7 +313,8 @@ def render_portal():
         if st.button(t['submit_task'], type="primary", use_container_width=True):
             # Resolve link if button didn't work
             if task_lat is None and maps_link_task:
-                task_lat, task_lon = extract_coords_from_link(maps_link_task)
+                with st.spinner("Reading map link..."):
+                    task_lat, task_lon = extract_coords_from_link(maps_link_task)
                 
             if task_lat is None:
                 st.error("Location is required. Please use the GPS button or paste a valid Google Maps link.")
