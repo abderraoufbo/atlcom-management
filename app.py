@@ -559,15 +559,32 @@ if main_menu == t['menu_dashboard']:
     with col3:
         st.markdown(f"<div class='card' style='border-left-color: #ffc107 !important;'><div class='card-title'>{t['resting_teams']}</div><div class='card-value'><span style='font-size: 28px; margin-right: 10px;'>🛌</span>{resting_teams} <span style='font-size: 18px; color: #6c757d;'>/ {total_teams}</span></div></div>", unsafe_allow_html=True)
 
-    # --- GENERAL METRICS (2ND) ---
+    # --- GENERAL METRICS & OPEN TASKS (2ND) ---
     st.markdown(f"<h3 style='margin-top: 30px; font-weight: 600; margin-bottom: 15px;'>📊 General Metrics</h3>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.markdown(f"<div class='card' style='border-left-color: #dc3545 !important;'><div class='card-title'>🚨 Open Tasks</div><div class='card-value'><span style='font-size: 28px; margin-right: 10px;'>⚠️</span>{open_tasks}</div></div>", unsafe_allow_html=True)
-    with col2:
         st.markdown(f"<div class='card' style='border-left-color: #00f2fe !important;'><div class='card-title'>{t['total_inventory']}</div><div class='card-value'><span style='font-size: 28px; margin-right: 10px;'>📦</span>{total_mats}</div></div>", unsafe_allow_html=True)
-    with col3:
+    with col2:
         st.markdown(f"<div class='card' style='border-left-color: #f093fb !important;'><div class='card-title'>Files Generated</div><div class='card-value'><span style='font-size: 28px; margin-right: 10px;'>📝</span>{total_docs}</div></div>", unsafe_allow_html=True)
+    with col3:
+        # Fetch Open Tasks Count
+        c.execute("SELECT COUNT(*) FROM tasks WHERE status='Open'")
+        open_tasks = c.fetchone()[0]
+        # Clickable Button styled like a card
+        if st.button(f"🚨 Open Tasks\n\n{open_tasks}", key="open_tasks_btn", use_container_width=True, help="Click to view open tasks"):
+            st.session_state.show_tasks = not st.session_state.get('show_tasks', False)
+            
+    # Show Open Tasks Table if button is clicked
+    if st.session_state.get('show_tasks', False):
+        st.markdown("<div style='margin-top: 10px;'>", unsafe_allow_html=True)
+        df_open_tasks = pd.read_sql_query("SELECT task_type, team_name, leader_id, created_at, notes FROM tasks WHERE status='Open' ORDER BY created_at DESC", conn)
+        if not df_open_tasks.empty:
+            df_open_tasks['created_at'] = pd.to_datetime(df_open_tasks['created_at']).dt.strftime('%Y-%m-%d %H:%M')
+            df_open_tasks.columns = ['Task Type', 'Team Name', 'Leader ID', 'Date Opened', 'Notes']
+            st.dataframe(df_open_tasks, use_container_width=True, hide_index=True)
+        else:
+            st.info("No open tasks right now. Great job!")
+        st.markdown("</div>", unsafe_allow_html=True)
 
     # --- AUDIT TRAIL TABLE ---
     st.markdown(f"<h3 style='margin-top: 30px; font-weight: 600; margin-bottom: 15px;'>📜 Recent Generated Files (Audit Trail)</h3>", unsafe_allow_html=True)
