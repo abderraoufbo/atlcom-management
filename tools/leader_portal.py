@@ -374,7 +374,6 @@ def render_portal():
 
     st.divider()
     if st.button(t['logout'], use_container_width=True):
-        st.query_params.clear()
-        st.session_state.leader_logged_in = False
-        st.session_state.leader_data = None
-        st.rerun()
+     st.session_state.clear()
+     st.query_params.clear()
+     st.rerun()

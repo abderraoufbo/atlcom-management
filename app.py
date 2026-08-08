@@ -208,6 +208,11 @@ def get_css():
         .login-container {{ display: flex; justify-content: center; padding-top: 10vh; }}
         .login-card {{ background-color: {glass_bg} !important; backdrop-filter: blur(12px) !important; padding: 40px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1) !important; border: 1px solid {glass_border} !important; width: 100%; max-width: 400px; }}
         
+                /* Unified Login Card UI */
+        .login-container {{ display: flex; justify-content: center; align-items: center; min-height: 80vh; }}
+        .login-card {{ background-color: {glass_bg} !important; backdrop-filter: blur(16px) !important; -webkit-backdrop-filter: blur(16px) !important; padding: 40px; border-radius: 20px; box-shadow: 0 12px 40px rgba(0,0,0,0.15) !important; border: 1px solid {glass_border} !important; width: 100%; max-width: 420px; text-align: center; }}
+        .login-icon {{ font-size: 50px; margin-bottom: 10px; display: block; }}
+
         @media only screen and (max-width: 768px) {{
             .block-container {{ padding-top: 4rem !important; padding-left: 1rem !important; padding-right: 1rem !important; max-width: 100% !important; }}
             [data-testid="stHorizontalBlock"] {{ flex-direction: column !important; width: 100% !important; align-items: center !important; gap: 10px !important; }}
@@ -262,8 +267,9 @@ elif st.session_state.get('role') == 'driver':
 elif not st.session_state.get('manager_logged_in'):
     # --- UNIFIED LOGIN PAGE ---
     st.markdown("<div class='login-container'><div class='login-card'>", unsafe_allow_html=True)
-    st.markdown("<h1 style='text-align:center;'>🛠️ ATLCOM Management</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align:center; opacity:0.7; margin-bottom:30px;'>Please log in to continue</p>", unsafe_allow_html=True)
+    st.markdown("<span class='login-icon'>🛠️</span>", unsafe_allow_html=True)
+    st.markdown("<h1 style='font-weight: 800; margin-bottom: 5px;'>ATLCOM</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='opacity: 0.7; margin-bottom: 25px;'>Management Portal</p>", unsafe_allow_html=True)
     
     role = st.radio("Select Role", ["Manager", "Team Leader", "Driver"], horizontal=True)
     

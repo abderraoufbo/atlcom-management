@@ -98,8 +98,7 @@ def render_portal():
                         st.rerun()
 
     st.divider()
-    if st.button("Logout", use_container_width=True):
+    if st.button("🚪 Logout", use_container_width=True):
+        st.session_state.clear()
         st.query_params.clear()
-        st.session_state.driver_logged_in = False
-        st.session_state.driver_name = None
         st.rerun()
