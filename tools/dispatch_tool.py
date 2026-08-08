@@ -315,7 +315,7 @@ def render_tool():
             with st.expander("✏️ Edit or Delete Team"):
                 edit_team = st.selectbox("Select Team to Edit", df_teams_list['team_name'].tolist())
                 conn = get_connection()
-                df_edit = pd.read_sql_query("SELECT * FROM teams WHERE team_name=%s", conn, params=(edit_team,))
+                df_edit = pd.read_sql_query("SELECT * FROM teams WHERE team_name=%(team)s", conn, params={"team": edit_team})
                 conn.close()
                 
                 if not df_edit.empty:
