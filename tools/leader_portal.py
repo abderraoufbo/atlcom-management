@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import sqlite3
 import pandas as pd
 import base64
@@ -21,20 +22,31 @@ def compress_image(uploaded_file, max_size=800):
     img.save(buf, format='JPEG')
     return base64.b64encode(buf.getvalue()).decode()
 
-# Helper to extract coordinates from Google Maps link (including shortlinks)
+# Helper to extract coordinates from Google Maps link, raw coords, or shortlinks
 def extract_coords_from_link(link):
     if not link: return None, None
     
-    # If it's a shortlink, resolve it to get the full URL
+    link = link.strip()
+    
+    # 1. Check for plain raw coordinates "36.540586, 2.983051"
+    raw_match = re.match(r'^\s*(-?\d{1,3}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)\s*$', link)
+    if raw_match:
+        return float(raw_match.group(1)), float(raw_match.group(2))
+        
+    # 2. Check for Plus Codes and reject them gracefully
+    if '+' in link and ',' in link and 'http' not in link:
+        return "plus_code", None
+        
+    # 3. If it's a shortlink, resolve it to get the full URL
     if 'goo.gl' in link or 'maps.app.goo.gl' in link:
         try:
-            req = urllib.request.Request(link, headers={'User-Agent': 'Mozilla/5.0'})
-            resp = urllib.request.urlopen(req, timeout=10)
+            req = urllib.request.Request(link, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'})
+            resp = urllib.request.urlopen(req, timeout=8)
             link = resp.geturl() # Gets the final redirected URL
         except:
             pass
             
-    # Match @lat,lon or q=lat,lon or !3dlat!4dlon
+    # 4. Match standard URL patterns
     match = re.search(r'@(-?\d+\.\d+),(-?\d+\.\d+)', link)
     if match: return float(match.group(1)), float(match.group(2))
     match = re.search(r'q=(-?\d+\.\d+),(-?\d+\.\d+)', link)
@@ -43,6 +55,11 @@ def extract_coords_from_link(link):
     if match: return float(match.group(1)), float(match.group(2))
     match = re.search(r'center=(-?\d+\.\d+),(-?\d+\.\d+)', link)
     if match: return float(match.group(1)), float(match.group(2))
+    
+    # 5. Fallback: find any two decimal numbers separated by comma in the URL
+    match = re.search(r'(-?\d{1,3}\.\d{4,})\s*,\s*(-?\d{1,3}\.\d{4,})', link)
+    if match: return float(match.group(1)), float(match.group(2))
+    
     return None, None
 
 portal_translations = {
@@ -61,9 +78,9 @@ portal_translations = {
         'task_photo': "Upload Photo Proof (Optional)", 'submit_task': "✅ Submit Task",
         'task_success': "Task submitted! The driver team has been notified.",
         'menu_status': "Status", 'menu_task': "Report Task",
-        'paste_link': "Or Paste Google Maps Link Here",
-        'link_help': "If GPS button fails: Open Google Maps, tap your blue dot, tap 'Share', copy the link and paste it here.",
-        'invalid_link': "Could not find coordinates in that link. Please make sure you copied the Google Maps share link.",
+        'paste_link': "Or Paste Google Maps Link / Coordinates Here",
+        'link_help': "If GPS button fails: Open Google Maps, tap your blue dot, tap 'Share', copy the link and paste it here. (You can also type coordinates like: 36.540, 2.983)",
+        'invalid_link': "Could not find coordinates. Please do not use Plus Codes (GXRM+5CM). Copy the share link or type coordinates manually.",
         'states': {"W": "🟢 Working", "R": "🟠 Resting", "S": "🔵 Stand-by", "T": "🔴 On Road", "P": "🔴 Urgency"}
     },
     'FR': {
@@ -79,9 +96,9 @@ portal_translations = {
         'task_photo': "Importer une Photo (Optionnel)", 'submit_task': "✅ Soumettre",
         'task_success': "Tâche soumise ! Les conducteurs ont été notifiés.",
         'menu_status': "Statut", 'menu_task': "Signaler Tâche",
-        'paste_link': "Ou collez le lien Google Maps ici",
+        'paste_link': "Ou collez le lien Google Maps / Coordonnées ici",
         'link_help': "Si le GPS échoue : Ouvrez Google Maps, touchez votre point bleu, 'Partager', copiez le lien et collez-le ici.",
-        'invalid_link': "Coordonnées introuvables. Assurez-vous d'avoir copié le lien de partage Google Maps.",
+        'invalid_link': "Coordonnées introuvables. N'utilisez pas de Plus Codes. Copiez le lien de partage ou tapez les coordonnées.",
         'states': {"W": "🟢 En Travail", "R": "🟠 En Repos", "S": "🔵 Disponible", "T": "🔴 En Route", "P": "🔴 Urgence"}
     },
     'AR': {
@@ -97,9 +114,9 @@ portal_translations = {
         'task_photo': "رفع صورة (اختياري)", 'submit_task': "✅ إرسال المهمة",
         'task_success': "تم إرسال المهمة! تم إبلاغ السائقين.",
         'menu_status': "الحالة", 'menu_task': "إبلاغ عن مهمة",
-        'paste_link': "أو الصق رابط خرائط جوجل هنا",
+        'paste_link': "أو الصق رابط خرائط جوجل / الإحداثيات هنا",
         'link_help': "إذا فشل زر تحديد الموقع: افتح خرائط جوجل، انقر على النقطة الزرقاء، 'مشاركة'، انسخ الرابط والصقه هنا.",
-        'invalid_link': "تعذر العثور على الإحداثيات. يرجى التأكد من نسخ رابط مشاركة خرائط جوجل.",
+        'invalid_link': "تعذر العثور على الإحداثيات. لا تستخدم رموز Plus Codes. انسخ رابط المشاركة أو اكتب الإحداثيات.",
         'states': {"W": "🟢 يعمل", "R": "🟠 راحة", "S": "🔵 مستعد", "T": "🔴 على الطريق", "P": "🔴 طارئ"}
     }
 }
@@ -177,7 +194,7 @@ def render_portal():
             new_wilaya = st.selectbox(t['select_wilaya'], list(ALGERIAN_WILAYAS.keys()), index=list(ALGERIAN_WILAYAS.keys()).index(team.get('wilaya')) if team.get('wilaya') in ALGERIAN_WILAYAS else 0)
             update_lat, update_lon = ALGERIAN_WILAYAS[new_wilaya]
             
-            # --- BULLETPROOF GPS BUTTON (Custom iframe with geolocation permission) ---
+            # --- FAST GPS BUTTON (Low Accuracy = Instant Cell Tower lock) ---
             st.markdown(f"##### 📍 {t['get_gps']}")
             st.markdown(f"""
             <iframe srcdoc="
@@ -208,7 +225,7 @@ def render_portal():
                                 else msg.innerText = 'Error. Use link below.';
                                 msg.style.color = 'red';
                             }},
-                            {{ enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }}
+                            {{ enableHighAccuracy: false, timeout: 8000, maximumAge: 0 }}
                         );
                     }}
                 </script>
@@ -226,12 +243,13 @@ def render_portal():
             maps_link = st.text_input(t['paste_link'], key="maps_link_status", label_visibility="collapsed")
             if maps_link:
                 p_lat, p_lon = extract_coords_from_link(maps_link)
-                if p_lat is not None:
+                if p_lat == "plus_code":
+                    st.error(t['invalid_link'])
+                elif p_lat is not None:
                     update_lat = p_lat
                     update_lon = p_lon
                     st.success(f"📍 {t['gps_locked']} ({update_lat}, {update_lon})")
-                else:
-                    st.error(t['invalid_link'])
+                # else: wait for submit to resolve shortlink
 
         if new_state_code == "R":
             return_date = st.date_input(t['return_date'], min_value=date.today())
@@ -240,6 +258,13 @@ def render_portal():
             
         notes = st.text_input(t['notes'], value=team.get('status_notes') or "")
         if st.button(t['update_btn'], type="primary", use_container_width=True):
+            # Resolve shortlink on submit if GPS wasn't used
+            if new_state_code == "W" and maps_link and update_lat == ALGERIAN_WILAYAS[new_wilaya][0]:
+                with st.spinner("Reading map link..."):
+                    p_lat, p_lon = extract_coords_from_link(maps_link)
+                    if p_lat and p_lat != "plus_code":
+                        update_lat, update_lon = p_lat, p_lon
+
             if new_state_code == "W" and not new_loc:
                 st.error(t['error_site'])
             else:
@@ -257,7 +282,7 @@ def render_portal():
         task_notes = st.text_area(t['task_notes'])
         uploaded_file = st.file_uploader(t['task_photo'], type=['jpg', 'jpeg', 'png'])
         
-        # --- BULLETPROOF GPS BUTTON (Custom iframe with geolocation permission) ---
+        # --- FAST GPS BUTTON ---
         st.markdown(f"##### 📍 {t['get_gps']}")
         st.markdown(f"""
             <iframe srcdoc="
@@ -288,7 +313,7 @@ def render_portal():
                                 else msg.innerText = 'Error. Use link below.';
                                 msg.style.color = 'red';
                             }},
-                            {{ enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }}
+                            {{ enableHighAccuracy: false, timeout: 8000, maximumAge: 0 }}
                         );
                     }}
                 </script>
@@ -305,18 +330,16 @@ def render_portal():
         # --- LINK FALLBACK ---
         st.caption(t['link_help'])
         maps_link_task = st.text_input(t['paste_link'], key="maps_link_task", label_visibility="collapsed")
-        if maps_link_task:
-            # We don't resolve the shortlink immediately to avoid slow UI. 
-            # We will resolve it on submit if needed.
-            pass
 
         if st.button(t['submit_task'], type="primary", use_container_width=True):
             # Resolve link if button didn't work
             if task_lat is None and maps_link_task:
                 with st.spinner("Reading map link..."):
                     task_lat, task_lon = extract_coords_from_link(maps_link_task)
-                
-            if task_lat is None:
+                    
+            if task_lat == "plus_code":
+                st.error(t['invalid_link'])
+            elif task_lat is None:
                 st.error("Location is required. Please use the GPS button or paste a valid Google Maps link.")
             else:
                 photo_b64 = compress_image(uploaded_file) if uploaded_file else None
