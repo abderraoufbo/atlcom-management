@@ -6,6 +6,7 @@ import pandas as pd
 from datetime import date, datetime
 from tools import leader_portal
 from database import init_db, get_connection, release_connection
+from tools import driver_portal
 
 sys.path.append(os.path.abspath("core"))
 from database import init_db, get_connection
@@ -435,6 +436,9 @@ query_params = st.query_params
 if 'portal' in query_params and query_params['portal'] == 'leader':
     leader_portal.render_portal()
     st.stop() # Stop executing the rest of the GM app
+elif 'portal' in query_params and query_params['portal'] == 'driver':
+    driver_portal.render_portal()
+    st.stop()
 
 # --- TOOL HIERARCHY CONFIGURATION ---
 TOOL_HIERARCHY = {
@@ -504,6 +508,8 @@ if main_menu == t['menu_dashboard']:
     # Fetch Generated Documents Count
     c.execute("SELECT COUNT(*) FROM generated_documents")
     total_docs = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM tasks WHERE status='Open'")
+    open_tasks = c.fetchone()[0]
     
     today = date.today()
     working_teams = 0
@@ -557,12 +563,12 @@ if main_menu == t['menu_dashboard']:
     st.markdown(f"<h3 style='margin-top: 30px; font-weight: 600; margin-bottom: 15px;'>📊 General Metrics</h3>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.markdown(f"<div class='card'><div class='card-title'>{t['active_clients']}</div><div class='card-value'><span style='font-size: 28px; margin-right: 10px;'>🏢</span>3</div></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='card' style='border-left-color: #dc3545 !important;'><div class='card-title'>🚨 Open Tasks</div><div class='card-value'><span style='font-size: 28px; margin-right: 10px;'>⚠️</span>{open_tasks}</div></div>", unsafe_allow_html=True)
     with col2:
         st.markdown(f"<div class='card' style='border-left-color: #00f2fe !important;'><div class='card-title'>{t['total_inventory']}</div><div class='card-value'><span style='font-size: 28px; margin-right: 10px;'>📦</span>{total_mats}</div></div>", unsafe_allow_html=True)
     with col3:
         st.markdown(f"<div class='card' style='border-left-color: #f093fb !important;'><div class='card-title'>Files Generated</div><div class='card-value'><span style='font-size: 28px; margin-right: 10px;'>📝</span>{total_docs}</div></div>", unsafe_allow_html=True)
-
+        
     # --- AUDIT TRAIL TABLE ---
     st.markdown(f"<h3 style='margin-top: 30px; font-weight: 600; margin-bottom: 15px;'>📜 Recent Generated Files (Audit Trail)</h3>", unsafe_allow_html=True)
     if not df_docs.empty:
@@ -570,7 +576,7 @@ if main_menu == t['menu_dashboard']:
         st.dataframe(df_docs, use_container_width=True, hide_index=True)
     else:
         st.info("No files generated yet. Generate an RN, ODR, or OA to see it here!")
-        
+
 # ==========================================
 # 2. DISPATCH & TRACKER
 # ==========================================

@@ -82,6 +82,22 @@ def init_db():
         generated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )''')
 
+    c.execute('''CREATE TABLE IF NOT EXISTS tasks (
+        id SERIAL PRIMARY KEY,
+        task_type TEXT,
+        leader_id TEXT,
+        team_name TEXT,
+        lat REAL,
+        lon REAL,
+        notes TEXT,
+        photo_base64 TEXT,
+        status TEXT DEFAULT 'Open',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        driver_id TEXT,
+        completion_photo_base64 TEXT,
+        completed_at TIMESTAMP
+    )''')
+
     c.close()
     print("Supabase PostgreSQL initialized successfully with Keepalives!")
 
