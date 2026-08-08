@@ -4,6 +4,7 @@ import os
 import sqlite3
 import pandas as pd
 from datetime import date, datetime
+from tools import leader_portal
 
 sys.path.append(os.path.abspath("core"))
 from database import init_db, get_connection
@@ -427,6 +428,12 @@ def get_css():
 st.markdown(get_css(), unsafe_allow_html=True)
 
 init_db()
+
+# --- ROUTING: Check if Team Leader is accessing the portal ---
+query_params = st.query_params
+if 'portal' in query_params and query_params['portal'] == 'leader':
+    leader_portal.render_portal()
+    st.stop() # Stop executing the rest of the GM app
 
 # --- TOOL HIERARCHY CONFIGURATION ---
 TOOL_HIERARCHY = {
