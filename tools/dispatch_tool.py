@@ -9,6 +9,7 @@ from io import BytesIO
 from pathlib import Path
 import plotly.express as px
 import sys, os
+from database import get_connection, release_connection
 
 sys.path.append(os.path.abspath("core"))
 from database import get_connection
@@ -51,7 +52,7 @@ def render_tool():
     with tab1:
         conn = get_connection()
         df_teams = pd.read_sql_query("SELECT * FROM teams", conn)
-        conn.close()
+        release_connection(conn)
 
         # --- SMART STATUS CALCULATION (APPLIED GLOBALLY) ---
         today = date.today()
@@ -149,7 +150,7 @@ def render_tool():
                                          SET wilaya=?, region=?, current_project=?, state_code=?, status_notes=?, current_location_name=?, return_to_work_date=?, current_lat=?, current_lon=? 
                                          WHERE team_name=?""", 
                                       (new_wilaya, new_region, new_project, state_letter, new_status_notes, new_loc, str(return_date) if return_date else None, update_lat, update_lon, team_to_assign))
-                            conn.commit(); conn.close()
+                            conn.commit(); release_connection(conn)
                             st.success(f"{team_to_assign} updated!")
                             st.rerun()
             else:
@@ -202,7 +203,7 @@ def render_tool():
             st.markdown("##### 📥 Export Work Plan")
             conn = get_connection()
             df_export = pd.read_sql_query("SELECT * FROM teams", conn)
-            conn.close()
+            release_connection(conn)
             
             if not df_export.empty:
                 if st.button("Generate Excel File", use_container_width=True):
@@ -304,19 +305,19 @@ def render_tool():
                         st.rerun()
                     except sqlite3.IntegrityError: st.error("Team already exists.")
                     except Exception as e: st.error(f"Error: {e}")
-                    finally: conn.close()
+                    finally: release_connection(conn)
 
         # --- EDIT OR DELETE TEAM ---
         conn = get_connection()
         df_teams_list = pd.read_sql_query("SELECT team_name FROM teams", conn)
-        conn.close()
+        release_connection(conn)
         
         if not df_teams_list.empty:
             with st.expander("✏️ Edit or Delete Team"):
                 edit_team = st.selectbox("Select Team to Edit", df_teams_list['team_name'].tolist())
                 conn = get_connection()
                 df_edit = pd.read_sql_query("SELECT * FROM teams WHERE team_name=%(team)s", conn, params={"team": edit_team})
-                conn.close()
+                release_connection(conn)
                 
                 if not df_edit.empty:
                     team_data = df_edit.iloc[0]
@@ -371,7 +372,7 @@ def render_tool():
                     if st.button("🗑️ Delete Team Permanently", use_container_width=True):
                         conn = get_connection(); c = conn.cursor()
                         c.execute("DELETE FROM teams WHERE team_name=%s", (edit_team,))
-                        conn.commit(); conn.close()
+                        conn.commit(); release_connection(conn)
                         st.success("Team deleted successfully!")
                         st.session_state.show_map_edit = False
                         st.rerun()
@@ -383,7 +384,7 @@ def render_tool():
                                      SET leader_id=?, leader_name=?, skills=?, wilaya=?, home_location_name=?, home_lat=?, home_lon=?, start_date=? 
                                      WHERE team_name=%s""", 
                                   (e_leader_id, e_leader_name, skills_str, e_home_wilaya, e_home_loc, e_home_lat, e_home_lon, str(e_start_date), edit_team))
-                        conn.commit(); conn.close()
+                        conn.commit(); release_connection(conn)
                         st.success("Team info updated!")
                         st.session_state.show_map_edit = False
                         st.session_state.edit_pick_lat = None
@@ -394,7 +395,7 @@ def render_tool():
         conn = get_connection()
         df = pd.read_sql_query("""SELECT team_name, leader_id, leader_name, skills, wilaya, region, state_code, 
                                   current_location_name, return_to_work_date FROM teams""", conn)
-        conn.close()
+        release_connection(conn)
         st.dataframe(df, use_container_width=True, hide_index=True)
 
     # ==========================================
@@ -405,7 +406,7 @@ def render_tool():
         
         conn = get_connection()
         df_teams_tab3 = pd.read_sql_query("SELECT team_name FROM teams", conn)
-        conn.close()
+        release_connection(conn)
         
         if df_teams_tab3.empty:
             st.info("Please register teams first to log history.")
@@ -430,14 +431,14 @@ def render_tool():
                                      (team_name, activity_type, location, start_date, end_date, duration_days) 
                                      VALUES (%s, %s, %s, %s, %s, %s)""", 
                                   (h_team, h_type, h_loc, str(h_start), str(h_end), duration))
-                        conn.commit(); conn.close()
+                        conn.commit(); release_connection(conn)
                         st.success(f"Logged {duration} days of {h_type} for {h_team}!"); st.rerun()
             
             st.markdown("---")
             
             conn = get_connection()
             df_history = pd.read_sql_query("SELECT * FROM team_history", conn)
-            conn.close()
+            release_connection(conn)
             
             if df_history.empty:
                 st.info("No history logged yet. Use the form above to log past work or rest.")

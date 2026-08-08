@@ -1,20 +1,35 @@
 import os
 import psycopg2
-from psycopg2.extras import RealDictCursor
+from psycopg2 import pool
 import streamlit as st
 
-@st.cache_resource
+# Global connection pool
+_connection_pool = None
+
+def init_pool():
+    global _connection_pool
+    if _connection_pool is None or _connection_pool.closed:
+        try:
+            db_url = st.secrets["database"]["url"]
+        except:
+            db_url = os.environ.get("DATABASE_URL")
+            
+        if not db_url:
+            raise ValueError("Database URL not found! Please set it in .streamlit/secrets.toml")
+            
+        # Create a pool with min 1 and max 5 connections
+        _connection_pool = pool.SimpleConnectionPool(1, 5, db_url)
+
 def get_connection():
-    try:
-        db_url = st.secrets["database"]["url"]
-    except:
-        db_url = os.environ.get("DATABASE_URL")
-        
-    if not db_url:
-        raise ValueError("Database URL not found! Please set it in .streamlit/secrets.toml")
-        
-    conn = psycopg2.connect(db_url)
-    return conn
+    init_pool()
+    # Get a connection from the pool
+    return _connection_pool.getconn()
+
+def release_connection(conn):
+    init_pool()
+    if conn and not _connection_pool.closed:
+        # Put the connection back in the pool for the next person to use
+        _connection_pool.putconn(conn)
 
 @st.cache_resource
 def init_db():
@@ -61,4 +76,5 @@ def init_db():
     )''')
 
     conn.commit()
+    release_connection(conn)
     print("Supabase PostgreSQL initialized successfully!")

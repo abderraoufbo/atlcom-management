@@ -5,6 +5,7 @@ import sqlite3
 import pandas as pd
 from datetime import date, datetime
 from tools import leader_portal
+from database import init_db, get_connection, release_connection
 
 sys.path.append(os.path.abspath("core"))
 from database import init_db, get_connection
@@ -499,7 +500,7 @@ if main_menu == t['menu_dashboard']:
     c.execute("SELECT COUNT(*) FROM ota_materials"); total_mats += c.fetchone()[0]
     c.execute("SELECT COUNT(*) FROM oa_materials"); total_mats += c.fetchone()[0]
     c.execute("SELECT COUNT(*) FROM lift_crane_items"); total_mats += c.fetchone()[0]
-    conn.close()
+    release_connection(conn)
     
     # --- SMART STATUS CALCULATION FOR DASHBOARD ---
     today = date.today()
@@ -582,10 +583,10 @@ elif main_menu == t['menu_materials']:
                     if new_name:
                         conn = get_connection(); c = conn.cursor()
                         c.execute('INSERT INTO materials (part_number, material_name, nature) VALUES (?, ?, ?)', (new_part, new_name, new_nature))
-                        conn.commit(); conn.close(); st.rerun()
+                        conn.commit(); release_connection(conn); st.rerun()
         conn = get_connection()
         df = pd.read_sql_query("SELECT part_number, material_name, nature FROM materials", conn)
-        conn.close()
+        release_connection(conn)
         st.dataframe(df, use_container_width=True, hide_index=True)
 
     with tab_ota:
@@ -599,10 +600,10 @@ elif main_menu == t['menu_materials']:
                     if new_desig:
                         conn = get_connection(); c = conn.cursor()
                         c.execute('INSERT INTO ota_materials (nature, designation, pn) VALUES (?, ?, ?)', (new_nature, new_desig, new_pn))
-                        conn.commit(); conn.close(); st.rerun()
+                        conn.commit(); release_connection(conn); st.rerun()
         conn = get_connection()
         df = pd.read_sql_query("SELECT nature, designation, pn FROM ota_materials", conn)
-        conn.close()
+        release_connection(conn)
         st.dataframe(df, use_container_width=True, hide_index=True)
 
     with tab_oa:
@@ -614,10 +615,10 @@ elif main_menu == t['menu_materials']:
                     if new_mat:
                         conn = get_connection(); c = conn.cursor()
                         c.execute('INSERT INTO oa_materials (material_name) VALUES (?)', (new_mat,))
-                        conn.commit(); conn.close(); st.rerun()
+                        conn.commit(); release_connection(conn); st.rerun()
         conn = get_connection()
         df = pd.read_sql_query("SELECT material_name FROM oa_materials", conn)
-        conn.close()
+        release_connection(conn)
         st.dataframe(df, use_container_width=True, hide_index=True)
 
     with tab_lc:
@@ -631,10 +632,10 @@ elif main_menu == t['menu_materials']:
                     if new_name:
                         conn = get_connection(); c = conn.cursor()
                         c.execute('INSERT INTO lift_crane_items (item_code, item_name, item_by) VALUES (?, ?, ?)', (new_code, new_name, new_by))
-                        conn.commit(); conn.close(); st.rerun()
+                        conn.commit(); release_connection(conn); st.rerun()
         conn = get_connection()
         df = pd.read_sql_query("SELECT item_code, item_name, item_by FROM lift_crane_items", conn)
-        conn.close()
+        release_connection(conn)
         st.dataframe(df, use_container_width=True, hide_index=True)
 
 # ==========================================

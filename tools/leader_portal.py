@@ -4,6 +4,7 @@ import sqlite3
 import pandas as pd
 from datetime import date, datetime
 import sys, os
+from database import get_connection, release_connection
 
 sys.path.append(os.path.abspath("core"))
 from database import get_connection
@@ -112,7 +113,7 @@ def render_portal():
         leader_id = query_params['lid']
         conn = get_connection()
         df = pd.read_sql_query("SELECT * FROM teams WHERE leader_id=%(lid)s", conn, params={"lid": leader_id})
-        conn.close()
+        release_connection(conn)
         if not df.empty:
             st.session_state.leader_logged_in = True
             st.session_state.leader_data = df.iloc[0].to_dict()
@@ -126,7 +127,7 @@ def render_portal():
         if st.button(t['login'], type="primary", use_container_width=True):
             conn = get_connection()
             df = pd.read_sql_query("SELECT * FROM teams WHERE leader_id=?", conn, params=(leader_id,))
-            conn.close()
+            release_connection(conn)
             if not df.empty:
                 st.query_params['lid'] = leader_id
                 st.session_state.leader_logged_in = True
@@ -238,11 +239,11 @@ def render_portal():
                          WHERE leader_id=?""", 
                       (new_state_code, notes, new_loc, str(return_date) if return_date else None, update_lat, update_lon, team['leader_id']))
             conn.commit()
-            conn.close()
+            release_connection(conn)
             
             conn = get_connection()
             df = pd.read_sql_query("SELECT * FROM teams WHERE leader_id=?", conn, params=(team['leader_id'],))
-            conn.close()
+            release_connection(conn)
             st.session_state.leader_data = df.iloc[0].to_dict()
             
             st.success(t['success'])
