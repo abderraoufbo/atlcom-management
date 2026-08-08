@@ -217,7 +217,7 @@ def get_css():
         /* ==========================================
            ULTRA PREMIUM LOGIN UI
            ========================================== */
-        .login-container {{ display: flex; justify-content: center; align-items: center; min-height: 90vh; padding: 20px; }}
+                .login-container {{ display: flex; justify-content: center; align-items: center; min-height: calc(100vh - 80px); margin-top: -2rem; padding: 10px; }}
         .login-card {{ 
             background: {login_bg} !important; 
             backdrop-filter: blur(24px) saturate(180%) !important; 
@@ -292,6 +292,7 @@ def get_css():
         }}
         
         @media only screen and (max-width: 768px) {{
+            .login-container {{ min-height: calc(100vh - 100px); margin-top: 0; padding-top: 0 !important; }}
             .block-container {{ padding-top: 4rem !important; padding-left: 1rem !important; padding-right: 1rem !important; max-width: 100% !important; }}
             [data-testid="stHorizontalBlock"] {{ flex-direction: column !important; width: 100% !important; align-items: center !important; gap: 10px !important; }}
             [data-testid="stHorizontalBlock"] > div {{ width: 100% !important; }}
