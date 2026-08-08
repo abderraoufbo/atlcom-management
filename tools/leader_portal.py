@@ -180,15 +180,14 @@ def render_portal():
         task_notes = st.text_area(t['task_notes'])
         uploaded_file = st.file_uploader(t['task_photo'], type=['jpg', 'jpeg', 'png'])
         
-        # GPS for Task
-               # GPS for Task
+    # GPS for Task
         components.html(f"""
         <button onclick="getTaskGPS()" style="width:100%; padding:12px; border-radius:8px; border:none; background:#0078D7; color:white; font-weight:600; cursor:pointer;">📍 {t['get_gps']}</button>
         <p id="task-gps-status" style="text-align:center; margin-top:10px; font-weight:bold;"></p>
         <script>
         function getTaskGPS() {{ 
             const s = document.getElementById('task-gps-status'); 
-            s.innerText = "Locating... (Please wait)"; 
+            s.innerText = "Locating... (Please wait up to 15s)"; 
             s.style.color = "blue";
             
             if (navigator.geolocation) {{ 
@@ -200,10 +199,20 @@ def render_portal():
                         window.parent.location.href = url.href; 
                     }}, 
                     e => {{ 
-                        s.innerText = "Error: " + e.message + ". Please check your phone's location settings."; 
+                        if (e.code === 1) {{
+                            s.innerText = "Permission Denied. You must click 'Allow' when the browser asks for location."; 
+                        }} else if (e.code === 3) {{
+                            s.innerText = "Timeout. Your phone's GPS might be off, or you are indoors. Try stepping outside."; 
+                        }} else {{
+                            s.innerText = "Error: " + e.message; 
+                        }}
                         s.style.color = "red"; 
                     }},
-                    {{ timeout: 10000 }} // 10 second timeout
+                    {{ 
+                        enableHighAccuracy: false, // Use faster network location instead of slow satellites
+                        timeout: 15000,            // Wait up to 15 seconds
+                        maximumAge: 0              // Don't use old cached location
+                    }}
                 ); 
             }} else {{ 
                 s.innerText = "GPS not supported on this device."; 
@@ -211,7 +220,7 @@ def render_portal():
             }} 
         }}
         </script>
-        """, height=80)
+        """, height=100)
         
         task_lat, task_lon = None, None
         if 'task_lat' in st.query_params:
