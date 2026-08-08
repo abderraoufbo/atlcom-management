@@ -53,10 +53,14 @@ def render_portal():
                 st.write(f"**Location:** Lat {task['lat']:.4f}, Lon {task['lon']:.4f}")
                 st.write(f"**Notes:** {task['notes'] or 'N/A'}")
                 
-                # Show Leader's Photo
+                                # Show Leader's Photo
                 if task['photo_base64']:
-                    img_data = base64.b64decode(task['photo_base64'])
-                    st.image(io.BytesIO(img_data), caption="Proof from Team Leader", use_container_width=True)
+                    try:
+                        # Safely convert to string before decoding
+                        img_data = base64.b64decode(str(task['photo_base64']))
+                        st.image(io.BytesIO(img_data), caption="Proof from Team Leader", use_container_width=True)
+                    except Exception as e:
+                        st.warning("Could not display leader photo.")
                 
                 # Map Link
                 gmaps_url = f"https://www.google.com/maps?q={task['lat']},{task['lon']}"
