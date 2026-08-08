@@ -299,9 +299,13 @@ def render_portal():
                 st.success(t['success'])
                 st.rerun()
 
-    elif menu_idx == 1:
-        st.subheader(t['report_task'])
+        elif menu_idx == 1:
+         st.subheader(t['report_task'])
         task_type = st.selectbox(t['task_type'], ["🧹 Clean Up", "📦 Material Pick Up", "🛠️ Extra Work", "💧 Waterproofing"])
+        
+        # --- NEW CODE SITE INPUT ---
+        task_code_site = st.text_input("Code Site", key="task_code_site_input")
+        
         task_notes = st.text_area(t['task_notes'], key="task_notes_input")
         uploaded_file = st.file_uploader(t['task_photo'], type=['jpg', 'jpeg', 'png'])
         
@@ -365,12 +369,12 @@ def render_portal():
             elif task_lat is None:
                 st.error("Location is required. Please use the GPS button or paste a valid Google Maps link.")
             else:
-                # Compress image before saving
+                                # Compress image before saving
                 photo_b64 = compress_image(uploaded_file) if uploaded_file else None
                 conn = get_connection()
                 c = conn.cursor()
-                c.execute("INSERT INTO tasks (task_type, leader_id, team_name, lat, lon, notes, photo_base64) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                          (task_type, team['leader_id'], team['team_name'], task_lat, task_lon, task_notes, photo_b64))
+                c.execute("INSERT INTO tasks (task_type, leader_id, team_name, code_site, lat, lon, notes, photo_base64) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                          (task_type, team['leader_id'], team['team_name'], task_code_site, task_lat, task_lon, task_notes, photo_b64))
                 conn.commit()
                 release_connection(conn)
                 

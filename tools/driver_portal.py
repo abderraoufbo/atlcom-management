@@ -63,6 +63,9 @@ def render_portal():
     else:
         for _, task in df_tasks.iterrows():
             with st.expander(f"{task['task_type']} - {task['team_name']} ({task['created_at'].strftime('%H:%M %d-%b')})"):
+                # --- NEW CODE SITE DISPLAY ---
+                st.write(f"**Code Site:** {task.get('code_site') or 'N/A'}")
+                
                 st.write(f"**Location:** Lat {task['lat']:.4f}, Lon {task['lon']:.4f}")
                 st.write(f"**Notes:** {task['notes'] or 'N/A'}")
                 

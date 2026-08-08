@@ -587,10 +587,10 @@ if main_menu == t['menu_dashboard']:
     # Show Open Tasks Table if the card was clicked
     if st.query_params.get('view_tasks') == "1":
         st.markdown("<div style='margin-top: 10px;'>", unsafe_allow_html=True)
-        df_open_tasks = pd.read_sql_query("SELECT task_type, team_name, leader_id, created_at, notes FROM tasks WHERE status='Open' ORDER BY created_at DESC", conn)
+        df_open_tasks = pd.read_sql_query("SELECT task_type, code_site, team_name, leader_id, created_at, notes FROM tasks WHERE status='Open' ORDER BY created_at DESC", conn)
         if not df_open_tasks.empty:
             df_open_tasks['created_at'] = pd.to_datetime(df_open_tasks['created_at']).dt.strftime('%Y-%m-%d %H:%M')
-            df_open_tasks.columns = ['Task Type', 'Team Name', 'Leader ID', 'Date Opened', 'Notes']
+            df_open_tasks.columns = ['Task Type', 'Code Site', 'Team Name', 'Leader ID', 'Date Opened', 'Notes']
             st.dataframe(df_open_tasks, use_container_width=True, hide_index=True)
         else:
             st.info("No open tasks right now. Great job!")

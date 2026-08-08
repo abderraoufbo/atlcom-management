@@ -98,6 +98,9 @@ def init_db():
         completed_at TIMESTAMP
     )''')
 
+        # Add Code Site column to tasks table if it doesn't exist
+    c.execute('''ALTER TABLE tasks ADD COLUMN IF NOT EXISTS code_site TEXT''')
+
     c.close()
     print("Supabase PostgreSQL initialized successfully with Keepalives!")
 
