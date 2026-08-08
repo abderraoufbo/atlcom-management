@@ -5,6 +5,7 @@ import pandas as pd
 import base64
 import io
 import re
+import urllib.request
 from PIL import Image
 from datetime import date, datetime
 import sys, os
@@ -21,9 +22,19 @@ def compress_image(uploaded_file, max_size=800):
     img.save(buf, format='JPEG')
     return base64.b64encode(buf.getvalue()).decode()
 
-# Helper to extract coordinates from Google Maps link
+# Helper to extract coordinates from Google Maps link (including shortlinks)
 def extract_coords_from_link(link):
     if not link: return None, None
+    
+    # If it's a shortlink, resolve it to get the full URL
+    if 'goo.gl' in link or 'maps.app.goo.gl' in link:
+        try:
+            req = urllib.request.Request(link, method='HEAD')
+            resp = urllib.request.urlopen(req, timeout=5)
+            link = resp.url
+        except:
+            pass
+            
     # Match @lat,lon or q=lat,lon or !3dlat!4dlon
     match = re.search(r'@(-?\d+\.\d+),(-?\d+\.\d+)', link)
     if match: return float(match.group(1)), float(match.group(2))
@@ -49,8 +60,8 @@ portal_translations = {
         'task_photo': "Upload Photo Proof (Optional)", 'submit_task': "✅ Submit Task",
         'task_success': "Task submitted! The driver team has been notified.",
         'menu_status': "Status", 'menu_task': "Report Task",
-        'paste_link': "Paste Google Maps Link Here",
-        'link_help': "Open Google Maps, tap your blue dot, tap 'Share', copy the link and paste it here.",
+        'paste_link': "Or Paste Google Maps Link Here",
+        'link_help': "If GPS button fails: Open Google Maps, tap your blue dot, tap 'Share', copy the link and paste it here.",
         'invalid_link': "Could not find coordinates in that link. Please make sure you copied the Google Maps share link.",
         'states': {"W": "🟢 Working", "R": "🟠 Resting", "S": "🔵 Stand-by", "T": "🔴 On Road", "P": "🔴 Urgency"}
     },
@@ -67,8 +78,8 @@ portal_translations = {
         'task_photo': "Importer une Photo (Optionnel)", 'submit_task': "✅ Soumettre",
         'task_success': "Tâche soumise ! Les conducteurs ont été notifiés.",
         'menu_status': "Statut", 'menu_task': "Signaler Tâche",
-        'paste_link': "Collez le lien Google Maps ici",
-        'link_help': "Ouvrez Google Maps, touchez votre point bleu, 'Partager', copiez le lien et collez-le ici.",
+        'paste_link': "Ou collez le lien Google Maps ici",
+        'link_help': "Si le GPS échoue : Ouvrez Google Maps, touchez votre point bleu, 'Partager', copiez le lien et collez-le ici.",
         'invalid_link': "Coordonnées introuvables. Assurez-vous d'avoir copié le lien de partage Google Maps.",
         'states': {"W": "🟢 En Travail", "R": "🟠 En Repos", "S": "🔵 Disponible", "T": "🔴 En Route", "P": "🔴 Urgence"}
     },
@@ -85,8 +96,8 @@ portal_translations = {
         'task_photo': "رفع صورة (اختياري)", 'submit_task': "✅ إرسال المهمة",
         'task_success': "تم إرسال المهمة! تم إبلاغ السائقين.",
         'menu_status': "الحالة", 'menu_task': "إبلاغ عن مهمة",
-        'paste_link': "الصق رابط خرائط جوجل هنا",
-        'link_help': "افتح خرائط جوجل، انقر على النقطة الزرقاء، 'مشاركة'، انسخ الرابط والصقه هنا.",
+        'paste_link': "أو الصق رابط خرائط جوجل هنا",
+        'link_help': "إذا فشل زر تحديد الموقع: افتح خرائط جوجل، انقر على النقطة الزرقاء، 'مشاركة'، انسخ الرابط والصقه هنا.",
         'invalid_link': "تعذر العثور على الإحداثيات. يرجى التأكد من نسخ رابط مشاركة خرائط جوجل.",
         'states': {"W": "🟢 يعمل", "R": "🟠 راحة", "S": "🔵 مستعد", "T": "🔴 على الطريق", "P": "🔴 طارئ"}
     }
@@ -165,11 +176,47 @@ def render_portal():
             new_wilaya = st.selectbox(t['select_wilaya'], list(ALGERIAN_WILAYAS.keys()), index=list(ALGERIAN_WILAYAS.keys()).index(team.get('wilaya')) if team.get('wilaya') in ALGERIAN_WILAYAS else 0)
             update_lat, update_lon = ALGERIAN_WILAYAS[new_wilaya]
             
-            # --- BULLETPROOF GOOGLE MAPS LINK PARSER ---
+            # --- GPS BUTTON BACK ---
             st.markdown(f"##### 📍 {t['get_gps']}")
+            components.html(f"""
+            <button onclick="getStatusGPS()" style="width:100%; padding:12px; border-radius:8px; border:none; background:linear-gradient(90deg, #4facfe 0%, #00f2fe 100%); color:white; font-weight:600; cursor:pointer;">{t['get_gps']}</button>
+            <p id="status-gps-msg" style="text-align:center; margin-top:10px; font-weight:bold;"></p>
+            <script>
+                function getStatusGPS() {{
+                    const msg = document.getElementById('status-gps-msg');
+                    msg.innerText = "Locating... Please wait";
+                    msg.style.color = "blue";
+                    if (!navigator.geolocation) {{
+                        msg.innerText = "GPS not supported. Use link below.";
+                        msg.style.color = "red"; return;
+                    }}
+                    navigator.geolocation.getCurrentPosition(
+                        (pos) => {{
+                            const url = new URL(window.parent.location.href);
+                            url.searchParams.set('gps_lat', pos.coords.latitude);
+                            url.searchParams.set('gps_lon', pos.coords.longitude);
+                            window.parent.location.href = url.href;
+                        }},
+                        (err) => {{
+                            if (err.code === 1) msg.innerText = "Permission Denied. Use link below.";
+                            else if (err.code === 3) msg.innerText = "Timeout. Use link below.";
+                            else msg.innerText = "Error. Use link below.";
+                            msg.style.color = "red";
+                        }},
+                        {{ enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }}
+                    );
+                }}
+            </script>
+            """, height=120)
+            
+            if 'gps_lat' in st.query_params:
+                update_lat = float(st.query_params['gps_lat'])
+                update_lon = float(st.query_params['gps_lon'])
+                st.success(f"📍 {t['gps_locked']}")
+                
+            # --- LINK FALLBACK ---
             st.caption(t['link_help'])
             maps_link = st.text_input(t['paste_link'], key="maps_link_status", label_visibility="collapsed")
-            
             if maps_link:
                 p_lat, p_lon = extract_coords_from_link(maps_link)
                 if p_lat is not None:
@@ -203,22 +250,60 @@ def render_portal():
         task_notes = st.text_area(t['task_notes'])
         uploaded_file = st.file_uploader(t['task_photo'], type=['jpg', 'jpeg', 'png'])
         
-        # --- BULLETPROOF GOOGLE MAPS LINK PARSER ---
+        # --- GPS BUTTON BACK ---
         st.markdown(f"##### 📍 {t['get_gps']}")
-        st.caption(t['link_help'])
-        maps_link_task = st.text_input(t['paste_link'], key="maps_link_task", label_visibility="collapsed")
+        components.html(f"""
+        <button onclick="getTaskGPS()" style="width:100%; padding:12px; border-radius:8px; border:none; background:#0078D7; color:white; font-weight:600; cursor:pointer;">📍 {t['get_gps']}</button>
+        <p id="task-gps-msg" style="text-align:center; margin-top:10px; font-weight:bold;"></p>
+        <script>
+            function getTaskGPS() {{
+                const msg = document.getElementById('task-gps-msg');
+                msg.innerText = "Locating... Please wait";
+                msg.style.color = "blue";
+                if (!navigator.geolocation) {{
+                    msg.innerText = "GPS not supported. Use link below.";
+                    msg.style.color = "red"; return;
+                }}
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {{
+                        const url = new URL(window.parent.location.href);
+                        url.searchParams.set('task_lat', pos.coords.latitude);
+                        url.searchParams.set('task_lon', pos.coords.longitude);
+                        window.parent.location.href = url.href;
+                    }},
+                    (err) => {{
+                        if (err.code === 1) msg.innerText = "Permission Denied. Use link below.";
+                        else if (err.code === 3) msg.innerText = "Timeout. Use link below.";
+                        else msg.innerText = "Error. Use link below.";
+                        msg.style.color = "red";
+                    }},
+                    {{ enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }}
+                );
+            }}
+        </script>
+        """, height=120)
         
         task_lat, task_lon = None, None
+        if 'task_lat' in st.query_params:
+            task_lat = float(st.query_params['task_lat'])
+            task_lon = float(st.query_params['task_lon'])
+            st.success(f"📍 {t['gps_locked']}")
+            
+        # --- LINK FALLBACK ---
+        st.caption(t['link_help'])
+        maps_link_task = st.text_input(t['paste_link'], key="maps_link_task", label_visibility="collapsed")
         if maps_link_task:
-            task_lat, task_lon = extract_coords_from_link(maps_link_task)
-            if task_lat is not None:
-                st.success(f"📍 {t['gps_locked']} ({task_lat}, {task_lon})")
-            else:
-                st.error(t['invalid_link'])
+            # We don't resolve the shortlink immediately to avoid slow UI. 
+            # We will resolve it on submit if needed.
+            pass
 
         if st.button(t['submit_task'], type="primary", use_container_width=True):
+            # Resolve link if button didn't work
+            if task_lat is None and maps_link_task:
+                task_lat, task_lon = extract_coords_from_link(maps_link_task)
+                
             if task_lat is None:
-                st.error("Location is required. Please paste your Google Maps link.")
+                st.error("Location is required. Please use the GPS button or paste a valid Google Maps link.")
             else:
                 photo_b64 = compress_image(uploaded_file) if uploaded_file else None
                 conn = get_connection()
@@ -228,6 +313,8 @@ def render_portal():
                 conn.commit()
                 release_connection(conn)
                 st.success(t['task_success'])
+                if 'task_lat' in st.query_params: del st.query_params['task_lat']
+                if 'task_lon' in st.query_params: del st.query_params['task_lon']
                 st.rerun()
 
     st.divider()
