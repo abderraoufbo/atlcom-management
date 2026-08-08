@@ -262,6 +262,26 @@ def get_css():
         /* Force inputs and buttons to center inside the login card */
         .login-card .stTextInput, .login-card .stButton {{ width: 100%; display: flex; justify-content: center; }}
         
+                /* Custom styling for Open Tasks Button to look like a Card */
+        button[k="open_tasks_btn"] {{
+            background: linear-gradient(135deg, #dc3545 0%, #ff6b6b 100%) !important;
+            color: white !important;
+            height: 100% !important;
+            min-height: 110px !important; 
+            border-radius: 16px !important;
+            border: none !important;
+            box-shadow: 0 8px 20px rgba(220, 53, 69, 0.3) !important;
+            font-weight: 700 !important;
+            font-size: 16px !important;
+            white-space: pre-line !important; /* Allows \n to work as line break */
+            line-height: 1.5 !important;
+        }}
+        button[k="open_tasks_btn"]:hover {{
+            transform: translateY(-5px) !important;
+            box-shadow: 0 12px 24px rgba(220, 53, 69, 0.4) !important;
+            background: linear-gradient(135deg, #c82333 0%, #e04545 100%) !important;
+        }}
+
         @media only screen and (max-width: 768px) {{
             .block-container {{ padding-top: 4rem !important; padding-left: 1rem !important; padding-right: 1rem !important; max-width: 100% !important; }}
             [data-testid="stHorizontalBlock"] {{ flex-direction: column !important; width: 100% !important; align-items: center !important; gap: 10px !important; }}
@@ -482,17 +502,13 @@ if main_menu == t['menu_dashboard']:
     with col3:
         c.execute("SELECT COUNT(*) FROM tasks WHERE status='Open'")
         open_tasks = c.fetchone()[0]
-        target_val = "0" if st.query_params.get('view_tasks') == "1" else "1"
-        st.markdown(f"""
-        <a href="?view_tasks={target_val}" style="text-decoration: none; color: inherit; display: block;">
-            <div class='card' style='border-left-color: #dc3545 !important; height: 100%; box-sizing: border-box; cursor: pointer;'>
-                <div class='card-title'>🚨 Open Tasks</div>
-                <div class='card-value'><span style='font-size: 28px; margin-right: 10px;'>⚠️</span>{open_tasks}</div>
-            </div>
-        </a>
-        """, unsafe_allow_html=True)
+        
+        # Native Streamlit Button styled as a card (No page reload, no new tab!)
+        if st.button(f"🚨 Open Tasks\n\n{open_tasks}", key="open_tasks_btn", use_container_width=True):
+            st.session_state.show_tasks = not st.session_state.get('show_tasks', False)
 
-    if st.query_params.get('view_tasks') == "1":
+    # Show Open Tasks Table if button is clicked
+    if st.session_state.get('show_tasks', False):
         st.markdown("<div style='margin-top: 10px;'>", unsafe_allow_html=True)
         df_open_tasks = pd.read_sql_query("SELECT task_type, code_site, team_name, leader_id, created_at, notes FROM tasks WHERE status='Open' ORDER BY created_at DESC", conn)
         if not df_open_tasks.empty:
