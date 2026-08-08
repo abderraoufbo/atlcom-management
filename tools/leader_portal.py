@@ -18,19 +18,11 @@ from tools.dispatch_tool import ALGERIAN_WILAYAS, DEFAULT_LAT, DEFAULT_LON
 def compress_image(uploaded_file, max_size=800, quality=70):
     try:
         img = Image.open(uploaded_file)
-        
-        # Convert to RGB to fix PNG transparency errors (RGBA cannot be saved as JPEG)
         if img.mode in ("RGBA", "P"):
             img = img.convert("RGB")
-            
-        # Resize the image to max_size (e.g., 800x800) to reduce file size
         img.thumbnail((max_size, max_size))
-        
-        # Compress and save to memory buffer
         buf = io.BytesIO()
         img.save(buf, format='JPEG', quality=quality, optimize=True)
-        
-        # Encode to base64 string
         return base64.b64encode(buf.getvalue()).decode()
     except Exception as e:
         st.error(f"Error processing image: {e}")
@@ -39,7 +31,6 @@ def compress_image(uploaded_file, max_size=800, quality=70):
 # Helper to extract coordinates from Google Maps link, raw coords, or shortlinks
 def extract_coords_from_link(link):
     if not link: return None, None
-    
     link = link.strip()
     
     # 1. Check for plain raw coordinates "36.540586, 2.983051"
@@ -56,7 +47,7 @@ def extract_coords_from_link(link):
         try:
             req = urllib.request.Request(link, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'})
             resp = urllib.request.urlopen(req, timeout=8)
-            link = resp.geturl() # Gets the final redirected URL
+            link = resp.geturl()
         except:
             pass
             
@@ -70,7 +61,7 @@ def extract_coords_from_link(link):
     match = re.search(r'center=(-?\d+\.\d+),(-?\d+\.\d+)', link)
     if match: return float(match.group(1)), float(match.group(2))
     
-    # 5. Fallback: find any two decimal numbers separated by comma in the URL
+    # 5. Fallback
     match = re.search(r'(-?\d{1,3}\.\d{4,})\s*,\s*(-?\d{1,3}\.\d{4,})', link)
     if match: return float(match.group(1)), float(match.group(2))
     
@@ -142,7 +133,6 @@ def render_portal():
     direction = "rtl" if is_ar else "ltr"
     text_align = "right" if is_ar else "left"
     
-    # Initialize menu state (0 = Status, 1 = Task)
     if 'portal_menu_idx' not in st.session_state: st.session_state.portal_menu_idx = 0
     if 'show_task_success' not in st.session_state: st.session_state.show_task_success = False
     
@@ -192,15 +182,13 @@ def render_portal():
     team = st.session_state.leader_data
     st.success(f"{t['welcome']} {team['leader_name']} ({team['team_name']})")
     
-    # Menu Selection
     menu_idx = st.radio("Menu", [0, 1], format_func=lambda x: t['menu_status'] if x == 0 else t['menu_task'], horizontal=True, label_visibility="collapsed", index=st.session_state.portal_menu_idx)
     st.session_state.portal_menu_idx = menu_idx
     
     if menu_idx == 0:
-        # Show success message if we just redirected from task submission
         if st.session_state.show_task_success:
             st.success(t['task_success'])
-            st.session_state.show_task_success = False # Clear it so it only shows once
+            st.session_state.show_task_success = False
             
         current_state = team.get('state_code') or 'S'
         st.info(f"{t['current_status']}: **{t['states'].get(current_state, 'Unknown')}**\n\n{t['location']}: **{team.get('current_location_name') or 'N/A'}**")
@@ -219,7 +207,6 @@ def render_portal():
             new_wilaya = st.selectbox(t['select_wilaya'], list(ALGERIAN_WILAYAS.keys()), index=list(ALGERIAN_WILAYAS.keys()).index(team.get('wilaya')) if team.get('wilaya') in ALGERIAN_WILAYAS else 0)
             update_lat, update_lon = ALGERIAN_WILAYAS[new_wilaya]
             
-            # --- FAST GPS BUTTON ---
             st.markdown(f"##### 📍 {t['get_gps']}")
             st.markdown(f"""
             <iframe srcdoc="
@@ -263,7 +250,6 @@ def render_portal():
                 update_lon = float(st.query_params['gps_lon'])
                 st.success(f"📍 {t['gps_locked']}")
                 
-            # --- LINK FALLBACK ---
             st.caption(t['link_help'])
             maps_link = st.text_input(t['paste_link'], key="maps_link_status", label_visibility="collapsed")
             if maps_link:
@@ -299,8 +285,8 @@ def render_portal():
                 st.success(t['success'])
                 st.rerun()
 
-        elif menu_idx == 1:
-         st.subheader(t['report_task'])
+    elif menu_idx == 1:
+        st.subheader(t['report_task'])
         task_type = st.selectbox(t['task_type'], ["🧹 Clean Up", "📦 Material Pick Up", "🛠️ Extra Work", "💧 Waterproofing"])
         
         # --- NEW CODE SITE INPUT ---
@@ -309,7 +295,6 @@ def render_portal():
         task_notes = st.text_area(t['task_notes'], key="task_notes_input")
         uploaded_file = st.file_uploader(t['task_photo'], type=['jpg', 'jpeg', 'png'])
         
-        # --- FAST GPS BUTTON ---
         st.markdown(f"##### 📍 {t['get_gps']}")
         st.markdown(f"""
             <iframe srcdoc="
@@ -354,12 +339,10 @@ def render_portal():
             task_lon = float(st.query_params['task_lon'])
             st.success(f"📍 {t['gps_locked']}")
             
-        # --- LINK FALLBACK ---
         st.caption(t['link_help'])
         maps_link_task = st.text_input(t['paste_link'], key="maps_link_task", label_visibility="collapsed")
 
         if st.button(t['submit_task'], type="primary", use_container_width=True):
-            # Resolve link if button didn't work
             if task_lat is None and maps_link_task:
                 with st.spinner("Reading map link..."):
                     task_lat, task_lon = extract_coords_from_link(maps_link_task)
@@ -369,24 +352,21 @@ def render_portal():
             elif task_lat is None:
                 st.error("Location is required. Please use the GPS button or paste a valid Google Maps link.")
             else:
-                                # Compress image before saving
                 photo_b64 = compress_image(uploaded_file) if uploaded_file else None
                 conn = get_connection()
                 c = conn.cursor()
-                c.execute("INSERT INTO tasks (task_type, leader_id, team_name, code_site, lat, lon, notes, photo_base64) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                c.execute("INSERT INTO tasks (task_type, leader_id, team_name, code_site, lat, lon, notes, photo_base64) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
                           (task_type, team['leader_id'], team['team_name'], task_code_site, task_lat, task_lon, task_notes, photo_b64))
                 conn.commit()
                 release_connection(conn)
                 
-                # --- AUTOMATIC REDIRECT TO STATUS SCREEN ---
                 st.session_state.show_task_success = True
-                st.session_state.portal_menu_idx = 0 # Switch back to Status tab
+                st.session_state.portal_menu_idx = 0
                 
-                # Clear form fields
                 st.session_state.task_notes_input = ""
                 st.session_state.maps_link_task = ""
+                st.session_state.task_code_site_input = ""
                 
-                # Clear GPS from URL
                 if 'task_lat' in st.query_params: del st.query_params['task_lat']
                 if 'task_lon' in st.query_params: del st.query_params['task_lon']
                 
