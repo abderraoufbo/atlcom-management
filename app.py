@@ -500,9 +500,11 @@ if main_menu == t['menu_dashboard']:
     c.execute("SELECT COUNT(*) FROM ota_materials"); total_mats += c.fetchone()[0]
     c.execute("SELECT COUNT(*) FROM oa_materials"); total_mats += c.fetchone()[0]
     c.execute("SELECT COUNT(*) FROM lift_crane_items"); total_mats += c.fetchone()[0]
-    release_connection(conn)
     
-    # --- SMART STATUS CALCULATION FOR DASHBOARD ---
+    # Fetch Generated Documents Count
+    c.execute("SELECT COUNT(*) FROM generated_documents")
+    total_docs = c.fetchone()[0]
+    
     today = date.today()
     working_teams = 0
     resting_teams = 0
@@ -521,7 +523,7 @@ if main_menu == t['menu_dashboard']:
                 try:
                     start_dt = datetime.strptime(str(start_date_str), "%Y-%m-%d").date()
                     if start_dt > today:
-                        is_resting = True # Future date means they are resting
+                        is_resting = True
                     else:
                         if current_state == 'W':
                             is_working = True
@@ -536,6 +538,10 @@ if main_menu == t['menu_dashboard']:
                 resting_teams += 1
             else:
                 available_teams += 1
+
+    # Fetch the actual documents for the table
+    df_docs = pd.read_sql_query("SELECT doc_type, client, site_code, file_name, generated_date FROM generated_documents ORDER BY generated_date DESC LIMIT 10", conn)
+    release_connection(conn)
                 
     # --- TEAM LIVE STATUS (1ST) ---
     st.markdown(f"<h3 style='font-weight: 600; margin-bottom: 15px;'>📡 {t['team_status']}</h3>", unsafe_allow_html=True)
@@ -555,8 +561,16 @@ if main_menu == t['menu_dashboard']:
     with col2:
         st.markdown(f"<div class='card' style='border-left-color: #00f2fe !important;'><div class='card-title'>{t['total_inventory']}</div><div class='card-value'><span style='font-size: 28px; margin-right: 10px;'>📦</span>{total_mats}</div></div>", unsafe_allow_html=True)
     with col3:
-        st.markdown(f"<div class='card' style='border-left-color: #f093fb !important;'><div class='card-title'>{t['total_teams']}</div><div class='card-value'><span style='font-size: 28px; margin-right: 10px;'>👥</span>{total_teams}</div></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='card' style='border-left-color: #f093fb !important;'><div class='card-title'>Files Generated</div><div class='card-value'><span style='font-size: 28px; margin-right: 10px;'>📝</span>{total_docs}</div></div>", unsafe_allow_html=True)
 
+    # --- AUDIT TRAIL TABLE ---
+    st.markdown(f"<h3 style='margin-top: 30px; font-weight: 600; margin-bottom: 15px;'>📜 Recent Generated Files (Audit Trail)</h3>", unsafe_allow_html=True)
+    if not df_docs.empty:
+        df_docs.columns = ['Type', 'Client', 'Site Code', 'File Name', 'Date Generated']
+        st.dataframe(df_docs, use_container_width=True, hide_index=True)
+    else:
+        st.info("No files generated yet. Generate an RN, ODR, or OA to see it here!")
+        
 # ==========================================
 # 2. DISPATCH & TRACKER
 # ==========================================

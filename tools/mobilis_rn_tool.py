@@ -11,7 +11,7 @@ import xlrd  # For reading old .xls files
 
 # Add core to path to access database
 sys.path.append(os.path.abspath("core"))
-from database import get_connection
+from database import get_connection, release_connection
 
 # --- Constants ---
 TEMPLATE_FILE = "data/templates/template.xlsx"
@@ -164,7 +164,7 @@ def render_tool():
         
         conn = get_connection()
         df_materials = pd.read_sql_query("SELECT material_name, part_number, nature FROM materials", conn)
-        conn.close()
+        release_connection(conn)
         material_names = df_materials['material_name'].tolist()
 
         with st.form("add_material_form", clear_on_submit=True):
@@ -262,6 +262,14 @@ def render_tool():
                         
                     physical_path = ALL_RN_FOLDER / file_name
                     wb.save(physical_path)
+
+                    # --- LOG TO DATABASE ---
+                    conn = get_connection()
+                    c = conn.cursor()
+                    c.execute("INSERT INTO generated_documents (doc_type, client, site_code, file_name) VALUES (%s, %s, %s, %s)",
+                              ("RN", "Mobilis", final_code_site, file_name))
+                    conn.commit()
+                    release_connection(conn)
 
                     virtual_file = BytesIO()
                     wb.save(virtual_file)

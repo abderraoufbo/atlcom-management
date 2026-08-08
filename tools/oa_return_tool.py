@@ -9,7 +9,7 @@ import sys
 import os
 
 sys.path.append(os.path.abspath("core"))
-from database import get_connection
+from database import get_connection, release_connection
 
 TEMPLATE_FILE = "data/templates/template_oa.xlsx"
 TABLE_START_ROW = 8
@@ -78,13 +78,10 @@ def render_tool():
         st.subheader("Add Materials")
         st.caption("💡 Tip: If you type a new material name, it will be saved to the database automatically for next time.")
         
-        # Fetch existing materials
         conn = get_connection()
         df_materials = pd.read_sql_query("SELECT material_name FROM oa_materials", conn)
-        conn.close()
+        release_connection(conn)
         existing_mats = df_materials['material_name'].tolist()
-        
-        # Add an option to type a new one
         mat_options = existing_mats + ["➕ Type New Material..."]
 
         with st.form("add_oa_form", clear_on_submit=True):
@@ -105,20 +102,18 @@ def render_tool():
 
             submitted = st.form_submit_button("➕ Add Item to List")
             if submitted:
-                # Determine final material name
                 if selected_mat == "➕ Type New Material...":
                     final_mat = new_mat_input.strip() if new_mat_input else ""
                     if final_mat:
-                        # Save to database!
                         conn = get_connection()
                         c = conn.cursor()
                         try:
-                            c.execute('INSERT INTO oa_materials (material_name) VALUES (?)', (final_mat,))
+                            c.execute('INSERT INTO oa_materials (material_name) VALUES (%s)', (final_mat,))
                             conn.commit()
                         except sqlite3.IntegrityError:
-                            pass # Already exists
+                            pass 
                         finally:
-                            conn.close()
+                            release_connection(conn)
                 else:
                     final_mat = selected_mat
 
@@ -131,7 +126,7 @@ def render_tool():
                     st.session_state.oa_items.append({
                         "code_site": final_site,
                         "material_name": final_mat,
-                        "code_produit": "N/A", # Default as requested
+                        "code_produit": "N/A", 
                         "serial": final_serial,
                         "qty": qty,
                         "etat": etat
@@ -156,6 +151,7 @@ def render_tool():
         if st.button("🚀 Generate OA Excel File", type="primary"):
             final_applicant = st.session_state['oa_applicant'].strip() if st.session_state['oa_applicant'].strip() else "N/A"
             oa_date = st.session_state['oa_date']
+            final_site_log = st.session_state.get('site_input', 'N/A')
             
             if not st.session_state.oa_items:
                 st.error("Please add at least one material.")
@@ -185,6 +181,14 @@ def render_tool():
                         
                     physical_path = ALL_OA_FOLDER / file_name
                     wb.save(physical_path)
+
+                    # --- LOG TO DATABASE ---
+                    conn = get_connection()
+                    c = conn.cursor()
+                    c.execute("INSERT INTO generated_documents (doc_type, client, site_code, file_name) VALUES (%s, %s, %s, %s)",
+                              ("OA Return", "Ooredoo", final_site_log, file_name))
+                    conn.commit()
+                    release_connection(conn)
 
                     virtual_file = BytesIO()
                     wb.save(virtual_file)

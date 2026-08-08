@@ -9,7 +9,7 @@ import sys
 import os
 
 sys.path.append(os.path.abspath("core"))
-from database import get_connection
+from database import get_connection, release_connection
 
 TEMPLATE_FILE = "data/templates/template_ota.xlsx"
 TABLE_START_ROW = 7
@@ -85,15 +85,13 @@ def render_tool():
         
         conn = get_connection()
         df_materials = pd.read_sql_query("SELECT designation, pn, nature FROM ota_materials", conn)
-        conn.close()
+        release_connection(conn)
         designations = df_materials['designation'].tolist()
 
         with st.form("add_ota_form", clear_on_submit=True):
             col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
             with col1:
                 selected_mat = st.selectbox("Désignation", options=designations, key="mat_select")
-                
-                # --- THE FIX: Auto-grab the Legacy/Reusable status ---
                 mat_info = df_materials[df_materials['designation'] == selected_mat].iloc[0]
                 auto_status = mat_info['nature'] if mat_info['nature'] else "N/A"
                 
@@ -102,7 +100,6 @@ def render_tool():
             with col3:
                 code_site = st.text_input("Code Site", key="site_input")
             with col4:
-                # Display the status as read-only so you know what will be saved to Excel
                 st.text_input("Status (Auto)", value=auto_status, disabled=True)
 
             submitted = st.form_submit_button("➕ Add Item to List")
@@ -115,7 +112,7 @@ def render_tool():
                     "pn": mat_info['pn'],
                     "serial": final_serial,
                     "code_site": final_site,
-                    "status": auto_status  # Save the Legacy/Reusable status
+                    "status": auto_status
                 })
                 st.rerun()
 
@@ -137,6 +134,7 @@ def render_tool():
         if st.button("🚀 Generate ODR Excel File", type="primary"):
             final_applicant = st.session_state['applicant'].strip() if st.session_state['applicant'].strip() else "N/A"
             final_city = st.session_state['city']
+            final_site_log = st.session_state.get('site_input', 'N/A')
             
             if not st.session_state.ota_items:
                 st.error("Please add at least one material.")
@@ -165,6 +163,14 @@ def render_tool():
                         
                     physical_path = ALL_ODR_FOLDER / file_name
                     wb.save(physical_path)
+
+                    # --- LOG TO DATABASE ---
+                    conn = get_connection()
+                    c = conn.cursor()
+                    c.execute("INSERT INTO generated_documents (doc_type, client, site_code, file_name) VALUES (%s, %s, %s, %s)",
+                              ("ODR", "Djezzy", final_site_log, file_name))
+                    conn.commit()
+                    release_connection(conn)
 
                     virtual_file = BytesIO()
                     wb.save(virtual_file)
