@@ -5,25 +5,22 @@ import streamlit as st
 
 @st.cache_resource
 def get_connection():
-    # Try to get the URL from Streamlit secrets (works on cloud and locally if secrets.toml exists)
     try:
         db_url = st.secrets["database"]["url"]
     except:
-        # Fallback for local testing if secrets.toml is missing
         db_url = os.environ.get("DATABASE_URL")
         
     if not db_url:
         raise ValueError("Database URL not found! Please set it in .streamlit/secrets.toml")
         
-    # Connect to PostgreSQL
     conn = psycopg2.connect(db_url)
     return conn
 
+@st.cache_resource
 def init_db():
     conn = get_connection()
     c = conn.cursor()
     
-    # PostgreSQL syntax for creating tables (SERIAL instead of AUTOINCREMENT)
     c.execute('''CREATE TABLE IF NOT EXISTS clients (id SERIAL PRIMARY KEY, name TEXT UNIQUE NOT NULL)''')
     c.execute('''CREATE TABLE IF NOT EXISTS materials (id SERIAL PRIMARY KEY, part_number TEXT, material_name TEXT UNIQUE NOT NULL, nature TEXT)''')
     c.execute('''CREATE TABLE IF NOT EXISTS ota_materials (id SERIAL PRIMARY KEY, nature TEXT, designation TEXT UNIQUE NOT NULL, pn TEXT)''')
@@ -65,6 +62,3 @@ def init_db():
 
     conn.commit()
     print("Supabase PostgreSQL initialized successfully!")
-
-if __name__ == "__main__":
-    init_db()

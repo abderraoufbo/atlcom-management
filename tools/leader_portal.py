@@ -111,7 +111,7 @@ def render_portal():
     if 'lid' in query_params and not st.session_state.get('leader_logged_in'):
         leader_id = query_params['lid']
         conn = get_connection()
-        df = pd.read_sql_query("SELECT * FROM teams WHERE leader_id=?", conn, params=(leader_id,))
+        df = pd.read_sql_query("SELECT * FROM teams WHERE leader_id=%s", conn, params=(leader_id,))
         conn.close()
         if not df.empty:
             st.session_state.leader_logged_in = True

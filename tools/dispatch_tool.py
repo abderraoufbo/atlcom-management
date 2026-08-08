@@ -315,7 +315,7 @@ def render_tool():
             with st.expander("✏️ Edit or Delete Team"):
                 edit_team = st.selectbox("Select Team to Edit", df_teams_list['team_name'].tolist())
                 conn = get_connection()
-                df_edit = pd.read_sql_query("SELECT * FROM teams WHERE team_name=?", conn, params=(edit_team,))
+                df_edit = pd.read_sql_query("SELECT * FROM teams WHERE team_name=%s", conn, params=(edit_team,))
                 conn.close()
                 
                 if not df_edit.empty:
@@ -370,7 +370,7 @@ def render_tool():
                         
                     if st.button("🗑️ Delete Team Permanently", use_container_width=True):
                         conn = get_connection(); c = conn.cursor()
-                        c.execute("DELETE FROM teams WHERE team_name=?", (edit_team,))
+                        c.execute("DELETE FROM teams WHERE team_name=%s", (edit_team,))
                         conn.commit(); conn.close()
                         st.success("Team deleted successfully!")
                         st.session_state.show_map_edit = False
@@ -381,7 +381,7 @@ def render_tool():
                         conn = get_connection(); c = conn.cursor()
                         c.execute("""UPDATE teams 
                                      SET leader_id=?, leader_name=?, skills=?, wilaya=?, home_location_name=?, home_lat=?, home_lon=?, start_date=? 
-                                     WHERE team_name=?""", 
+                                     WHERE team_name=%s""", 
                                   (e_leader_id, e_leader_name, skills_str, e_home_wilaya, e_home_loc, e_home_lat, e_home_lon, str(e_start_date), edit_team))
                         conn.commit(); conn.close()
                         st.success("Team info updated!")
@@ -428,7 +428,7 @@ def render_tool():
                         conn = get_connection(); c = conn.cursor()
                         c.execute("""INSERT INTO team_history 
                                      (team_name, activity_type, location, start_date, end_date, duration_days) 
-                                     VALUES (?, ?, ?, ?, ?, ?)""", 
+                                     VALUES (%s, %s, %s, %s, %s, %s)""", 
                                   (h_team, h_type, h_loc, str(h_start), str(h_end), duration))
                         conn.commit(); conn.close()
                         st.success(f"Logged {duration} days of {h_type} for {h_team}!"); st.rerun()
