@@ -559,7 +559,7 @@ if main_menu == t['menu_dashboard']:
     with col3:
         st.markdown(f"<div class='card' style='border-left-color: #ffc107 !important;'><div class='card-title'>{t['resting_teams']}</div><div class='card-value'><span style='font-size: 28px; margin-right: 10px;'>🛌</span>{resting_teams} <span style='font-size: 18px; color: #6c757d;'>/ {total_teams}</span></div></div>", unsafe_allow_html=True)
 
-    # --- GENERAL METRICS & OPEN TASKS (2ND) ---
+    # --- GENERAL METRICS (2ND) ---
     st.markdown(f"<h3 style='margin-top: 30px; font-weight: 600; margin-bottom: 15px;'>📊 General Metrics</h3>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -570,12 +570,25 @@ if main_menu == t['menu_dashboard']:
         # Fetch Open Tasks Count
         c.execute("SELECT COUNT(*) FROM tasks WHERE status='Open'")
         open_tasks = c.fetchone()[0]
-        # Clickable Button styled like a card
-        if st.button(f"🚨 Open Tasks\n\n{open_tasks}", key="open_tasks_btn", use_container_width=True, help="Click to view open tasks"):
-            st.session_state.show_tasks = not st.session_state.get('show_tasks', False)
-            
-    # Show Open Tasks Table if button is clicked
-    if st.session_state.get('show_tasks', False):
+        
+        # Clickable HTML Card with embedded JavaScript
+        st.markdown(f"""
+        <div class='card' style='border-left-color: #dc3545 !important; cursor: pointer; transition: transform 0.2s;' onclick="
+            const url = new URL(window.parent.location.href);
+            if (url.searchParams.get('view_tasks') === '1') {{
+                url.searchParams.delete('view_tasks');
+            }} else {{
+                url.searchParams.set('view_tasks', '1');
+            }}
+            window.parent.location.href = url.href;
+        ">
+            <div class='card-title'>🚨 Open Tasks</div>
+            <div class='card-value'><span style='font-size: 28px; margin-right: 10px;'>⚠️</span>{open_tasks}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # Show Open Tasks Table if the card was clicked
+    if st.query_params.get('view_tasks') == '1':
         st.markdown("<div style='margin-top: 10px;'>", unsafe_allow_html=True)
         df_open_tasks = pd.read_sql_query("SELECT task_type, team_name, leader_id, created_at, notes FROM tasks WHERE status='Open' ORDER BY created_at DESC", conn)
         if not df_open_tasks.empty:
