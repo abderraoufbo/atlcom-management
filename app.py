@@ -124,18 +124,15 @@ def get_css():
             background-color: transparent !important;
         }}
         /* Hide ONLY the ugly menu/share buttons */
-        div[data-testid="stToolbar"] {{
+        div[data-testid="stToolbar"], div[data-testid="stMainMenu"] {{
             display: none !important;
         }}
-        /* FORCE the sidebar toggle button to stay visible no matter what */
-        [data-testid="stSidebarCollapseButton"] {{
+        /* FORCE the sidebar toggle button to stay visible */
+        [data-testid="stSidebarCollapseButton"], button[kind="header"] {{
             display: flex !important;
             visibility: visible !important;
             opacity: 1 !important;
             z-index: 999999 !important;
-            position: fixed !important;
-            top: 15px !important;
-            right: 15px !important;
         }}
         
         section[data-testid="stSidebar"] {{
@@ -298,6 +295,8 @@ def get_css():
 st.markdown(get_css(), unsafe_allow_html=True)
 
 init_db()
+
+st.sidebar.markdown("") # Forces the sidebar and toggle button to exist on all pages
 
 # --- UNIFIED SESSION INIT FROM URL ---
 def init_session():
