@@ -128,6 +128,10 @@ def render_portal():
     direction = "rtl" if is_ar else "ltr"
     text_align = "right" if is_ar else "left"
     
+    # Initialize menu state (0 = Status, 1 = Task)
+    if 'portal_menu_idx' not in st.session_state: st.session_state.portal_menu_idx = 0
+    if 'show_task_success' not in st.session_state: st.session_state.show_task_success = False
+    
     st.markdown(f"""
     <style>
         section[data-testid="stSidebar"] {{ display: none !important; }}
@@ -174,9 +178,15 @@ def render_portal():
     team = st.session_state.leader_data
     st.success(f"{t['welcome']} {team['leader_name']} ({team['team_name']})")
     
-    menu = st.radio("Menu", [t['menu_status'], t['menu_task']], horizontal=True, label_visibility="collapsed")
+    # Menu Selection
+    menu_idx = st.radio("Menu", [0, 1], format_func=lambda x: t['menu_status'] if x == 0 else t['menu_task'], horizontal=True, label_visibility="collapsed", key="portal_menu_idx")
     
-    if menu == t['menu_status']:
+    if menu_idx == 0:
+        # Show success message if we just redirected from task submission
+        if st.session_state.show_task_success:
+            st.success(t['task_success'])
+            st.session_state.show_task_success = False # Clear it so it only shows once
+            
         current_state = team.get('state_code') or 'S'
         st.info(f"{t['current_status']}: **{t['states'].get(current_state, 'Unknown')}**\n\n{t['location']}: **{team.get('current_location_name') or 'N/A'}**")
         st.divider()
@@ -194,7 +204,7 @@ def render_portal():
             new_wilaya = st.selectbox(t['select_wilaya'], list(ALGERIAN_WILAYAS.keys()), index=list(ALGERIAN_WILAYAS.keys()).index(team.get('wilaya')) if team.get('wilaya') in ALGERIAN_WILAYAS else 0)
             update_lat, update_lon = ALGERIAN_WILAYAS[new_wilaya]
             
-            # --- FAST GPS BUTTON (Low Accuracy = Instant Cell Tower lock) ---
+            # --- FAST GPS BUTTON ---
             st.markdown(f"##### 📍 {t['get_gps']}")
             st.markdown(f"""
             <iframe srcdoc="
@@ -249,7 +259,6 @@ def render_portal():
                     update_lat = p_lat
                     update_lon = p_lon
                     st.success(f"📍 {t['gps_locked']} ({update_lat}, {update_lon})")
-                # else: wait for submit to resolve shortlink
 
         if new_state_code == "R":
             return_date = st.date_input(t['return_date'], min_value=date.today())
@@ -258,7 +267,6 @@ def render_portal():
             
         notes = st.text_input(t['notes'], value=team.get('status_notes') or "")
         if st.button(t['update_btn'], type="primary", use_container_width=True):
-            # Resolve shortlink on submit if GPS wasn't used
             if new_state_code == "W" and maps_link and update_lat == ALGERIAN_WILAYAS[new_wilaya][0]:
                 with st.spinner("Reading map link..."):
                     p_lat, p_lon = extract_coords_from_link(maps_link)
@@ -276,10 +284,10 @@ def render_portal():
                 st.success(t['success'])
                 st.rerun()
 
-    elif menu == t['menu_task']:
+    elif menu_idx == 1:
         st.subheader(t['report_task'])
         task_type = st.selectbox(t['task_type'], ["🧹 Clean Up", "📦 Material Pick Up", "🛠️ Extra Work", "💧 Waterproofing"])
-        task_notes = st.text_area(t['task_notes'])
+        task_notes = st.text_area(t['task_notes'], key="task_notes_input")
         uploaded_file = st.file_uploader(t['task_photo'], type=['jpg', 'jpeg', 'png'])
         
         # --- FAST GPS BUTTON ---
@@ -349,9 +357,19 @@ def render_portal():
                           (task_type, team['leader_id'], team['team_name'], task_lat, task_lon, task_notes, photo_b64))
                 conn.commit()
                 release_connection(conn)
-                st.success(t['task_success'])
+                
+                # --- AUTOMATIC REDIRECT TO STATUS SCREEN ---
+                st.session_state.show_task_success = True
+                st.session_state.portal_menu_idx = 0 # Switch back to Status tab
+                
+                # Clear form fields
+                st.session_state.task_notes_input = ""
+                st.session_state.maps_link_task = ""
+                
+                # Clear GPS from URL
                 if 'task_lat' in st.query_params: del st.query_params['task_lat']
                 if 'task_lon' in st.query_params: del st.query_params['task_lon']
+                
                 st.rerun()
 
     st.divider()
