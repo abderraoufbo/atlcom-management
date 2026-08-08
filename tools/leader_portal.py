@@ -1,8 +1,10 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import sqlite3
 import pandas as pd
 import base64
 import io
+import re
 from PIL import Image
 from datetime import date, datetime
 import sys, os
@@ -18,6 +20,18 @@ def compress_image(uploaded_file, max_size=800):
     buf = io.BytesIO()
     img.save(buf, format='JPEG')
     return base64.b64encode(buf.getvalue()).decode()
+
+# Helper to extract coordinates from Google Maps link
+def extract_coords_from_link(link):
+    if not link: return None, None
+    # Match @lat,lon or q=lat,lon or !3dlat!4dlon
+    match = re.search(r'@(-?\d+\.\d+),(-?\d+\.\d+)', link)
+    if match: return float(match.group(1)), float(match.group(2))
+    match = re.search(r'q=(-?\d+\.\d+),(-?\d+\.\d+)', link)
+    if match: return float(match.group(1)), float(match.group(2))
+    match = re.search(r'!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)', link)
+    if match: return float(match.group(1)), float(match.group(2))
+    return None, None
 
 portal_translations = {
     'EN': {
@@ -35,6 +49,9 @@ portal_translations = {
         'task_photo': "Upload Photo Proof (Optional)", 'submit_task': "✅ Submit Task",
         'task_success': "Task submitted! The driver team has been notified.",
         'menu_status': "Status", 'menu_task': "Report Task",
+        'paste_link': "Paste Google Maps Link Here",
+        'link_help': "Open Google Maps, tap your blue dot, tap 'Share', copy the link and paste it here.",
+        'invalid_link': "Could not find coordinates in that link. Please make sure you copied the Google Maps share link.",
         'states': {"W": "🟢 Working", "R": "🟠 Resting", "S": "🔵 Stand-by", "T": "🔴 On Road", "P": "🔴 Urgency"}
     },
     'FR': {
@@ -50,6 +67,9 @@ portal_translations = {
         'task_photo': "Importer une Photo (Optionnel)", 'submit_task': "✅ Soumettre",
         'task_success': "Tâche soumise ! Les conducteurs ont été notifiés.",
         'menu_status': "Statut", 'menu_task': "Signaler Tâche",
+        'paste_link': "Collez le lien Google Maps ici",
+        'link_help': "Ouvrez Google Maps, touchez votre point bleu, 'Partager', copiez le lien et collez-le ici.",
+        'invalid_link': "Coordonnées introuvables. Assurez-vous d'avoir copié le lien de partage Google Maps.",
         'states': {"W": "🟢 En Travail", "R": "🟠 En Repos", "S": "🔵 Disponible", "T": "🔴 En Route", "P": "🔴 Urgence"}
     },
     'AR': {
@@ -65,6 +85,9 @@ portal_translations = {
         'task_photo': "رفع صورة (اختياري)", 'submit_task': "✅ إرسال المهمة",
         'task_success': "تم إرسال المهمة! تم إبلاغ السائقين.",
         'menu_status': "الحالة", 'menu_task': "إبلاغ عن مهمة",
+        'paste_link': "الصق رابط خرائط جوجل هنا",
+        'link_help': "افتح خرائط جوجل، انقر على النقطة الزرقاء، 'مشاركة'، انسخ الرابط والصقه هنا.",
+        'invalid_link': "تعذر العثور على الإحداثيات. يرجى التأكد من نسخ رابط مشاركة خرائط جوجل.",
         'states': {"W": "🟢 يعمل", "R": "🟠 راحة", "S": "🔵 مستعد", "T": "🔴 على الطريق", "P": "🔴 طارئ"}
     }
 }
@@ -142,47 +165,19 @@ def render_portal():
             new_wilaya = st.selectbox(t['select_wilaya'], list(ALGERIAN_WILAYAS.keys()), index=list(ALGERIAN_WILAYAS.keys()).index(team.get('wilaya')) if team.get('wilaya') in ALGERIAN_WILAYAS else 0)
             update_lat, update_lon = ALGERIAN_WILAYAS[new_wilaya]
             
-            # --- BULLETPROOF GPS INJECTION (MAIN DOM) ---
-            st.markdown(f"""
-            <button id="status-gps-btn" onclick="getStatusGPS()" style="width:100%; padding:12px; border-radius:8px; border:none; background:linear-gradient(90deg, #4facfe 0%, #00f2fe 100%); color:white; font-weight:600; cursor:pointer;">{t['get_gps']}</button>
-            <p id="status-gps-msg" style="text-align:center; margin-top:10px; font-weight:bold;"></p>
-            <script>
-                function getStatusGPS() {{
-                    const msg = document.getElementById('status-gps-msg');
-                    msg.innerText = "Locating... Please wait";
-                    msg.style.color = "blue";
-                    
-                    if (!navigator.geolocation) {{
-                        msg.innerText = "GPS not supported on this device.";
-                        msg.style.color = "red";
-                        return;
-                    }}
-                    
-                    navigator.geolocation.getCurrentPosition(
-                        (pos) => {{
-                            const lat = pos.coords.latitude;
-                            const lon = pos.coords.longitude;
-                            const url = new URL(window.location.href);
-                            url.searchParams.set('gps_lat', lat);
-                            url.searchParams.set('gps_lon', lon);
-                            window.location.href = url.href; // Redirects parent page
-                        }},
-                        (err) => {{
-                            if (err.code === 1) msg.innerText = "Permission Denied. Allow location in browser settings.";
-                            else if (err.code === 3) msg.innerText = "Timeout. Try again or use manual entry.";
-                            else msg.innerText = "Error: " + err.message;
-                            msg.style.color = "red";
-                        }},
-                        {{ enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }}
-                    );
-                }}
-            </script>
-            """, unsafe_allow_html=True)
+            # --- BULLETPROOF GOOGLE MAPS LINK PARSER ---
+            st.markdown(f"##### 📍 {t['get_gps']}")
+            st.caption(t['link_help'])
+            maps_link = st.text_input(t['paste_link'], key="maps_link_status", label_visibility="collapsed")
             
-            if 'gps_lat' in st.query_params:
-                update_lat = float(st.query_params['gps_lat'])
-                update_lon = float(st.query_params['gps_lon'])
-                st.success(f"📍 {t['gps_locked']}")
+            if maps_link:
+                p_lat, p_lon = extract_coords_from_link(maps_link)
+                if p_lat is not None:
+                    update_lat = p_lat
+                    update_lon = p_lon
+                    st.success(f"📍 {t['gps_locked']} ({update_lat}, {update_lon})")
+                else:
+                    st.error(t['invalid_link'])
 
         if new_state_code == "R":
             return_date = st.date_input(t['return_date'], min_value=date.today())
@@ -208,66 +203,22 @@ def render_portal():
         task_notes = st.text_area(t['task_notes'])
         uploaded_file = st.file_uploader(t['task_photo'], type=['jpg', 'jpeg', 'png'])
         
-        # --- BULLETPROOF GPS INJECTION (MAIN DOM) ---
-        st.markdown(f"""
-        <button id="task-gps-btn" onclick="getTaskGPS()" style="width:100%; padding:12px; border-radius:8px; border:none; background:#0078D7; color:white; font-weight:600; cursor:pointer;">📍 {t['get_gps']}</button>
-        <p id="task-gps-msg" style="text-align:center; margin-top:10px; font-weight:bold;"></p>
-        <script>
-            function getTaskGPS() {{
-                const msg = document.getElementById('task-gps-msg');
-                msg.innerText = "Locating... Please wait";
-                msg.style.color = "blue";
-                
-                if (!navigator.geolocation) {{
-                    msg.innerText = "GPS not supported on this device.";
-                    msg.style.color = "red";
-                    return;
-                }}
-                
-                navigator.geolocation.getCurrentPosition(
-                    (pos) => {{
-                        const lat = pos.coords.latitude;
-                        const lon = pos.coords.longitude;
-                        const url = new URL(window.location.href);
-                        url.searchParams.set('task_lat', lat);
-                        url.searchParams.set('task_lon', lon);
-                        window.location.href = url.href; // Redirects parent page
-                    }},
-                    (err) => {{
-                        if (err.code === 1) msg.innerText = "Permission Denied. Allow location in browser settings.";
-                        else if (err.code === 3) msg.innerText = "Timeout. Try again or use manual entry.";
-                        else msg.innerText = "Error: " + err.message;
-                        msg.style.color = "red";
-                    }},
-                    {{ enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }}
-                );
-            }}
-        </script>
-        """, unsafe_allow_html=True)
+        # --- BULLETPROOF GOOGLE MAPS LINK PARSER ---
+        st.markdown(f"##### 📍 {t['get_gps']}")
+        st.caption(t['link_help'])
+        maps_link_task = st.text_input(t['paste_link'], key="maps_link_task", label_visibility="collapsed")
         
         task_lat, task_lon = None, None
-        if 'task_lat' in st.query_params:
-            task_lat = float(st.query_params['task_lat'])
-            task_lon = float(st.query_params['task_lon'])
-            st.success(f"📍 {t['gps_locked']}")
-            
-        # Manual Fallback
-        st.write("If the button above fails, open Google Maps, copy your coordinates, and paste them here:")
-        c1, c2 = st.columns(2)
-        with c1: manual_lat_t = st.text_input("Enter Latitude", key="man_lat_t")
-        with c2: manual_lon_t = st.text_input("Enter Longitude", key="man_lon_t")
-        
-        if manual_lat_t and manual_lon_t:
-            try:
-                task_lat = float(manual_lat_t)
-                task_lon = float(manual_lon_t)
-                st.success("📍 Coordinates set manually!")
-            except:
-                st.error("Invalid coordinates. Please enter numbers only.")
+        if maps_link_task:
+            task_lat, task_lon = extract_coords_from_link(maps_link_task)
+            if task_lat is not None:
+                st.success(f"📍 {t['gps_locked']} ({task_lat}, {task_lon})")
+            else:
+                st.error(t['invalid_link'])
 
         if st.button(t['submit_task'], type="primary", use_container_width=True):
             if task_lat is None:
-                st.error("GPS location is required to submit a task.")
+                st.error("Location is required. Please paste your Google Maps link.")
             else:
                 photo_b64 = compress_image(uploaded_file) if uploaded_file else None
                 conn = get_connection()
@@ -277,8 +228,6 @@ def render_portal():
                 conn.commit()
                 release_connection(conn)
                 st.success(t['task_success'])
-                if 'task_lat' in st.query_params: del st.query_params['task_lat']
-                if 'task_lon' in st.query_params: del st.query_params['task_lon']
                 st.rerun()
 
     st.divider()
