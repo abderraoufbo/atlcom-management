@@ -117,15 +117,25 @@ def get_css():
             color: {text_color} !important;
         }}
         
-        /* ==========================================
-           FIX: HIDE WHITE TOOLBAR BOX ENTIRELY
+         /* ==========================================
+           FIX: HIDE WHITE TOOLBAR BUT KEEP SIDEBAR BUTTON
            ========================================== */
         header[data-testid="stHeader"] {{
             background-color: transparent !important;
-            display: none !important; 
         }}
+        /* Hide ONLY the ugly menu/share buttons */
         div[data-testid="stToolbar"] {{
             display: none !important;
+        }}
+        /* FORCE the sidebar toggle button to stay visible no matter what */
+        [data-testid="stSidebarCollapseButton"] {{
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            z-index: 999999 !important;
+            position: fixed !important;
+            top: 15px !important;
+            right: 15px !important;
         }}
         
         section[data-testid="stSidebar"] {{
