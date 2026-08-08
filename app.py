@@ -144,7 +144,7 @@ translations = {
 if 'lang' not in st.session_state:
     st.session_state.lang = 'EN'
 if 'theme' not in st.session_state:
-    st.session_state.theme = 'Light'
+    st.session_state.theme = 'Dark'
 
 t = translations[st.session_state.lang]
 
@@ -464,9 +464,11 @@ with st.sidebar.expander(f"⚙️ {t['settings']}"):
             st.session_state.lang = lang
             st.rerun()
     with col_theme:
-        theme = st.selectbox(f"{t['theme']}", ['Light', 'Dark'], key='theme_select')
-        if theme != st.session_state.theme:
-            st.session_state.theme = theme
+        # Using on_change to handle the theme switch more smoothly
+        current_theme_index = 0 if st.session_state.theme == 'Light' else 1
+        new_theme = st.selectbox(f"{t['theme']}", ['Light', 'Dark'], index=current_theme_index, key='theme_select')
+        if new_theme != st.session_state.theme:
+            st.session_state.theme = new_theme
             st.rerun()
 
 st.sidebar.markdown("---")
