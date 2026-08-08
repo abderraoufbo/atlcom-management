@@ -559,7 +559,7 @@ if main_menu == t['menu_dashboard']:
     with col3:
         st.markdown(f"<div class='card' style='border-left-color: #ffc107 !important;'><div class='card-title'>{t['resting_teams']}</div><div class='card-value'><span style='font-size: 28px; margin-right: 10px;'>🛌</span>{resting_teams} <span style='font-size: 18px; color: #6c757d;'>/ {total_teams}</span></div></div>", unsafe_allow_html=True)
 
-    # --- GENERAL METRICS (2ND) ---
+        # --- GENERAL METRICS (2ND) ---
     st.markdown(f"<h3 style='margin-top: 30px; font-weight: 600; margin-bottom: 15px;'>📊 General Metrics</h3>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -571,24 +571,21 @@ if main_menu == t['menu_dashboard']:
         c.execute("SELECT COUNT(*) FROM tasks WHERE status='Open'")
         open_tasks = c.fetchone()[0]
         
-        # Clickable HTML Card with embedded JavaScript
+        # Determine if we should show or hide the table (1 = show, 0 = hide)
+        target_val = "0" if st.query_params.get('view_tasks') == "1" else "1"
+        
+        # Clickable HTML Card using <a href> which bypasses Streamlit's JS restrictions
         st.markdown(f"""
-        <div class='card' style='border-left-color: #dc3545 !important; cursor: pointer; transition: transform 0.2s;' onclick="
-            const url = new URL(window.parent.location.href);
-            if (url.searchParams.get('view_tasks') === '1') {{
-                url.searchParams.delete('view_tasks');
-            }} else {{
-                url.searchParams.set('view_tasks', '1');
-            }}
-            window.parent.location.href = url.href;
-        ">
-            <div class='card-title'>🚨 Open Tasks</div>
-            <div class='card-value'><span style='font-size: 28px; margin-right: 10px;'>⚠️</span>{open_tasks}</div>
-        </div>
+        <a href="?view_tasks={target_val}" style="text-decoration: none; color: inherit; display: block;">
+            <div class='card' style='border-left-color: #dc3545 !important; height: 100%; box-sizing: border-box; cursor: pointer;'>
+                <div class='card-title'>🚨 Open Tasks</div>
+                <div class='card-value'><span style='font-size: 28px; margin-right: 10px;'>⚠️</span>{open_tasks}</div>
+            </div>
+        </a>
         """, unsafe_allow_html=True)
 
     # Show Open Tasks Table if the card was clicked
-    if st.query_params.get('view_tasks') == '1':
+    if st.query_params.get('view_tasks') == "1":
         st.markdown("<div style='margin-top: 10px;'>", unsafe_allow_html=True)
         df_open_tasks = pd.read_sql_query("SELECT task_type, team_name, leader_id, created_at, notes FROM tasks WHERE status='Open' ORDER BY created_at DESC", conn)
         if not df_open_tasks.empty:
@@ -599,14 +596,7 @@ if main_menu == t['menu_dashboard']:
             st.info("No open tasks right now. Great job!")
         st.markdown("</div>", unsafe_allow_html=True)
 
-    # --- AUDIT TRAIL TABLE ---
-    st.markdown(f"<h3 style='margin-top: 30px; font-weight: 600; margin-bottom: 15px;'>📜 Recent Generated Files (Audit Trail)</h3>", unsafe_allow_html=True)
-    if not df_docs.empty:
-        df_docs.columns = ['Type', 'Client', 'Site Code', 'File Name', 'Date Generated']
-        st.dataframe(df_docs, use_container_width=True, hide_index=True)
-    else:
-        st.info("No files generated yet. Generate an RN, ODR, or OA to see it here!")
-
+    release_connection(conn)
 # ==========================================
 # 2. DISPATCH & TRACKER
 # ==========================================
