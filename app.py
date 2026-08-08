@@ -204,10 +204,10 @@ def get_css():
             color: {text_color} !important;
         }}
         
-        /* ==========================================
+                /* ==========================================
            ULTRA PREMIUM LOGIN UI
            ========================================== */
-        .login-container {{ display: flex; justify-content: center; align-items: center; min-height: 85vh; padding: 20px; }}
+        .login-container {{ display: flex; justify-content: center; padding-top: 2rem; }}
         .login-card {{ 
             background-color: {glass_bg} !important; 
             backdrop-filter: blur(16px) !important; 
