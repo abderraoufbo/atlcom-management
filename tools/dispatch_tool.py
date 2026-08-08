@@ -190,12 +190,13 @@ def render_tool():
                 
             st_folium(m, width=700, height=500)
 
-    # ==========================================
+        # ==========================================
     # TAB 2: TEAM MANAGER
     # ==========================================
     with tab2:
         st.subheader("Manage Teams")
         
+        # --- EXPORT TO EXCEL FEATURE ---
         col_exp1, col_exp2 = st.columns([1, 3])
         with col_exp1:
             st.markdown("##### 📥 Export Work Plan")
@@ -235,36 +236,77 @@ def render_tool():
         
         st.markdown("---")
 
+        # --- REGISTER NEW TEAM ---
         with st.expander("➕ Register New Team"):
+            # Map Picker State
+            if 'show_map_add' not in st.session_state: st.session_state.show_map_add = False
+            if 'pick_lat' not in st.session_state: st.session_state.pick_lat = None
+            if 'pick_lon' not in st.session_state: st.session_state.pick_lon = None
+            
             with st.form("add_team_form", clear_on_submit=True):
                 c1, c2, c3 = st.columns(3)
                 with c1: team_name = st.text_input("Team Name *")
                 with c2: leader_id = st.text_input("Team Leader ID *")
                 with c3: leader_name = st.text_input("Team Leader Name *")
+                
                 c1, c2 = st.columns(2)
                 with c1: skills = st.multiselect("Skills", ["MW", "RAN", "Data Center", "Power", "Civil Works"])
                 with c2: home_wilaya = st.selectbox("Home Wilaya", list(ALGERIAN_WILAYAS.keys()))
+                
                 st.markdown("**Home Base Details**")
+                
+                # The Map Picker Button (outside form logic is tricky, so we put it inside form but it won't submit if we just toggle state)
+                # Actually, to avoid form submission on map click, we put the map outside the form. Let's adjust.
+                # For simplicity in Streamlit, we place the button here, but render the map below the form if toggled.
+                
                 c1, c2 = st.columns(2)
-                with c1: home_lat = st.number_input("Home Latitude", value=ALGERIAN_WILAYAS[home_wilaya][0], format="%.4f")
-                with c2: home_lon = st.number_input("Home Longitude", value=ALGERIAN_WILAYAS[home_wilaya][1], format="%.4f")
-                home_loc = st.text_input("Home Location Name")
+                default_lat = st.session_state.pick_lat if st.session_state.pick_lat else ALGERIAN_WILAYAS[home_wilaya][0]
+                default_lon = st.session_state.pick_lon if st.session_state.pick_lon else ALGERIAN_WILAYAS[home_wilaya][1]
+                
+                with c1: home_lat = st.number_input("Home Latitude", value=float(default_lat), format="%.4f")
+                with c2: home_lon = st.number_input("Home Longitude", value=float(default_lon), format="%.4f")
+                
+                home_loc = st.text_input("Home Location Name (e.g., Downtown Oran)")
                 start_date = st.date_input("Start Date of Work", min_value=date(2020,1,1), value=date.today())
                 
-                if st.form_submit_button("Add Team"):
-                    if team_name and leader_id:
-                        skills_str = ", ".join(skills)
-                        conn = get_connection(); c = conn.cursor()
-                        try:
-                            c.execute('''INSERT INTO teams 
-                                        (team_name, leader_id, leader_name, skills, wilaya, home_lat, home_lon, home_location_name, current_lat, current_lon, current_location_name, status, state_code, start_date)
-                                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Available', 'S', ?)''',
-                                      (team_name, leader_id, leader_name, skills_str, home_wilaya, home_lat, home_lon, home_loc, home_lat, home_lon, home_loc, str(start_date)))
-                            conn.commit(); st.success("Team Added!"); st.rerun()
-                        except sqlite3.IntegrityError: st.error("Team already exists.")
-                        except Exception as e: st.error(f"Error: {e}")
-                        finally: conn.close()
+                submitted = st.form_submit_button("Add Team")
+            
+            # Map Picker UI (Renders below the form if button is clicked)
+            if st.button("📍 Pick Home Address on Map", use_container_width=True):
+                st.session_state.show_map_add = not st.session_state.show_map_add
+                
+            if st.session_state.show_map_add:
+                st.info("Click anywhere on the map to drop a pin. The coordinates will auto-fill above.")
+                picker_center = ALGERIAN_WILAYAS[home_wilaya]
+                m_pick = folium.Map(location=picker_center, zoom_start=12)
+                if st.session_state.pick_lat:
+                    folium.Marker([st.session_state.pick_lat, st.session_state.pick_lon], popup="Selected Home", icon=folium.Icon(color="green", icon="home", prefix='fa')).add_to(m_pick)
+                map_data = st_folium(m_pick, width=500, height=350)
+                if map_data and map_data.get("last_clicked"):
+                    st.session_state.pick_lat = map_data["last_clicked"]["lat"]
+                    st.session_state.pick_lon = map_data["last_clicked"]["lng"]
+                    st.rerun()
 
+            if submitted:
+                if team_name and leader_id:
+                    skills_str = ", ".join(skills)
+                    conn = get_connection(); c = conn.cursor()
+                    try:
+                        c.execute('''INSERT INTO teams 
+                                    (team_name, leader_id, leader_name, skills, wilaya, home_lat, home_lon, home_location_name, current_lat, current_lon, current_location_name, status, state_code, start_date)
+                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Available', 'S', ?)''',
+                                  (team_name, leader_id, leader_name, skills_str, home_wilaya, home_lat, home_lon, home_loc, home_lat, home_lon, home_loc, str(start_date)))
+                        conn.commit(); st.success("Team Added!")
+                        # Reset map state
+                        st.session_state.show_map_add = False
+                        st.session_state.pick_lat = None
+                        st.session_state.pick_lon = None
+                        st.rerun()
+                    except sqlite3.IntegrityError: st.error("Team already exists.")
+                    except Exception as e: st.error(f"Error: {e}")
+                    finally: conn.close()
+
+        # --- EDIT OR DELETE TEAM ---
         conn = get_connection()
         df_teams_list = pd.read_sql_query("SELECT team_name FROM teams", conn)
         conn.close()
@@ -278,6 +320,11 @@ def render_tool():
                 
                 if not df_edit.empty:
                     team_data = df_edit.iloc[0]
+                    
+                    if 'show_map_edit' not in st.session_state: st.session_state.show_map_edit = False
+                    if 'edit_pick_lat' not in st.session_state: st.session_state.edit_pick_lat = None
+                    if 'edit_pick_lon' not in st.session_state: st.session_state.edit_pick_lon = None
+                    
                     with st.form("edit_team_form"):
                         c1, c2, c3 = st.columns(3)
                         with c1: e_leader_id = st.text_input("Leader ID", value=team_data.get('leader_id'))
@@ -285,25 +332,49 @@ def render_tool():
                         with c3: 
                             current_skills = [s.strip() for s in str(team_data.get('skills')).split(',') if s.strip()] if team_data.get('skills') else []
                             e_skills = st.multiselect("Skills", ["MW", "RAN", "Data Center", "Power", "Civil Works"], default=current_skills)
+                        
                         c1, c2 = st.columns(2)
                         wilaya_list = list(ALGERIAN_WILAYAS.keys())
                         current_wilaya = team_data.get('wilaya')
                         wilaya_idx = wilaya_list.index(current_wilaya) if current_wilaya in wilaya_list else 0
                         with c1: e_home_wilaya = st.selectbox("Home Wilaya", wilaya_list, index=wilaya_idx)
                         with c2: e_home_loc = st.text_input("Home Location Name", value=team_data.get('home_location_name') or "")
+                        
                         c1, c2 = st.columns(2)
-                        with c1: e_home_lat = st.number_input("Home Latitude", value=float(team_data.get('home_lat')) if pd.notna(team_data.get('home_lat')) else DEFAULT_LAT, format="%.4f")
-                        with c2: e_home_lon = st.number_input("Home Longitude", value=float(team_data.get('home_lon')) if pd.notna(team_data.get('home_lon')) else DEFAULT_LON, format="%.4f")
+                        edit_default_lat = st.session_state.edit_pick_lat if st.session_state.edit_pick_lat else (float(team_data.get('home_lat')) if pd.notna(team_data.get('home_lat')) else DEFAULT_LAT)
+                        edit_default_lon = st.session_state.edit_pick_lon if st.session_state.edit_pick_lon else (float(team_data.get('home_lon')) if pd.notna(team_data.get('home_lon')) else DEFAULT_LON)
+                        
+                        with c1: e_home_lat = st.number_input("Home Latitude", value=float(edit_default_lat), format="%.4f")
+                        with c2: e_home_lon = st.number_input("Home Longitude", value=float(edit_default_lon), format="%.4f")
+                        
                         e_start_date = st.date_input("Start Date", value=datetime.strptime(team_data.get('start_date'), "%Y-%m-%d").date() if team_data.get('start_date') else date.today())
+                        
                         c1, c2 = st.columns(2)
                         with c1: update_btn = st.form_submit_button("🔄 Update Info", use_container_width=True)
                         with c2: pass 
+                        
+                    if st.button("📍 Pick New Address on Map", use_container_width=True):
+                        st.session_state.show_map_edit = not st.session_state.show_map_edit
+                        
+                    if st.session_state.show_map_edit:
+                        st.info("Click anywhere on the map to drop a pin.")
+                        picker_center = [edit_default_lat, edit_default_lon]
+                        m_pick_edit = folium.Map(location=picker_center, zoom_start=12)
+                        if st.session_state.edit_pick_lat:
+                            folium.Marker([st.session_state.edit_pick_lat, st.session_state.edit_pick_lon], popup="New Home", icon=folium.Icon(color="green", icon="home", prefix='fa')).add_to(m_pick_edit)
+                        map_data_edit = st_folium(m_pick_edit, width=500, height=350)
+                        if map_data_edit and map_data_edit.get("last_clicked"):
+                            st.session_state.edit_pick_lat = map_data_edit["last_clicked"]["lat"]
+                            st.session_state.edit_pick_lon = map_data_edit["last_clicked"]["lng"]
+                            st.rerun()
                         
                     if st.button("🗑️ Delete Team Permanently", use_container_width=True):
                         conn = get_connection(); c = conn.cursor()
                         c.execute("DELETE FROM teams WHERE team_name=?", (edit_team,))
                         conn.commit(); conn.close()
-                        st.success("Team deleted successfully!"); st.rerun()
+                        st.success("Team deleted successfully!")
+                        st.session_state.show_map_edit = False
+                        st.rerun()
                         
                     if update_btn:
                         skills_str = ", ".join(e_skills)
@@ -313,7 +384,11 @@ def render_tool():
                                      WHERE team_name=?""", 
                                   (e_leader_id, e_leader_name, skills_str, e_home_wilaya, e_home_loc, e_home_lat, e_home_lon, str(e_start_date), edit_team))
                         conn.commit(); conn.close()
-                        st.success("Team info updated!"); st.rerun()
+                        st.success("Team info updated!")
+                        st.session_state.show_map_edit = False
+                        st.session_state.edit_pick_lat = None
+                        st.session_state.edit_pick_lon = None
+                        st.rerun()
 
         st.markdown("---")
         conn = get_connection()
