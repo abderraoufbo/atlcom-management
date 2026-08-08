@@ -17,8 +17,8 @@ from tools import dispatch_tool
 from tools import leader_portal
 from tools import driver_portal
 
-# --- PAGE CONFIG ---
-st.set_page_config(page_title="ATLCOM Management", page_icon="🛠️", layout="wide", initial_sidebar_state="expanded")
+# --- PAGE CONFIG (Added favicon.ico) ---
+st.set_page_config(page_title="ATLCOM Management", page_icon="favicon.ico", layout="wide", initial_sidebar_state="expanded")
 
 # --- COMPREHENSIVE TRANSLATIONS DICTIONARY ---
 translations = {
@@ -116,9 +116,18 @@ def get_css():
             background: {body_bg} !important;
             color: {text_color} !important;
         }}
+        
+        /* ==========================================
+           FIX: HIDE WHITE TOOLBAR BOX ENTIRELY
+           ========================================== */
         header[data-testid="stHeader"] {{
             background-color: transparent !important;
+            display: none !important; 
         }}
+        div[data-testid="stToolbar"] {{
+            display: none !important;
+        }}
+        
         section[data-testid="stSidebar"] {{
             background-color: {glass_bg} !important;
             backdrop-filter: blur(12px) !important;
@@ -204,8 +213,8 @@ def get_css():
             color: {text_color} !important;
         }}
         
-                /* ==========================================
-           ULTRA PREMIUM LOGIN UI
+        /* ==========================================
+           ULTRA PREMIUM LOGIN UI (FIXED CENTERING)
            ========================================== */
         .login-container {{ display: flex; justify-content: center; padding-top: 2rem; }}
         .login-card {{ 
@@ -218,6 +227,9 @@ def get_css():
             border: 1px solid {glass_border} !important; 
             width: 100%; max-width: 420px; 
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }}
         .login-icon-wrapper {{
             width: 80px; height: 80px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
@@ -227,7 +239,7 @@ def get_css():
         .login-icon {{ font-size: 40px; }}
         
         /* Custom Radio Buttons for Login (Pill Style) */
-        .login-card .stRadio > div {{ flex-direction: row; display: flex; gap: 10px; background: transparent; }}
+        .login-card .stRadio > div {{ flex-direction: row; display: flex; gap: 10px; background: transparent; width: 100%; }}
         .login-card .stRadio > div > label {{
             background: {input_bg} !important;
             border: 1px solid {glass_border} !important;
@@ -248,6 +260,9 @@ def get_css():
         }}
         .login-card .stRadio > div > label > div:first-child {{ display: none !important; }}
         .login-card .stRadio > div > label > div:last-child {{ width: 100% !important; font-size: 14px; font-weight: 600; }}
+        
+        /* Force inputs and buttons to center inside the login card */
+        .login-card .stTextInput, .login-card .stButton {{ width: 100%; display: flex; justify-content: center; }}
         
         @media only screen and (max-width: 768px) {{
             .block-container {{ padding-top: 4rem !important; padding-left: 1rem !important; padding-right: 1rem !important; max-width: 100% !important; }}
