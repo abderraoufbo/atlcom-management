@@ -1,0 +1,38 @@
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "atlcom.streamlit",
+  "orientation": "any",
+  "scope": "https://atlcom.streamlit.app",
+  "short_name": "atlcom.streamlit",
+  "start_url": "https://atlcom.streamlit.app/~/+/?view_tasks=1",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "https://atlcom.streamlit.app/favicon.ico",
+      "type": "image/x-icon",
+      "isSquare": false,
+      "isPng": false,
+      "isWebp": false,
+      "isJpg": false,
+      "width": 0,
+      "is512x512": false,
+      "is256x256": false,
+      "is192x192": false
+    }
+  ],
+  "description": "This Is ATLCOM management App made by Abderraouf Boulahnache",
+  "lang": "en",
+  "display_override": [
+    "fullscreen",
+    "window-controls-overlay",
+    "browser",
+    "minimal-ui",
+    "standalone"
+  ],
+  "categories": [
+    "business",
+    "development"
+  ]
+}
