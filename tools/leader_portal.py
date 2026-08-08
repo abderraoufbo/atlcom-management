@@ -144,17 +144,54 @@ def render_portal():
             new_wilaya = st.selectbox(t['select_wilaya'], list(ALGERIAN_WILAYAS.keys()), index=list(ALGERIAN_WILAYAS.keys()).index(team.get('wilaya')) if team.get('wilaya') in ALGERIAN_WILAYAS else 0)
             update_lat, update_lon = ALGERIAN_WILAYAS[new_wilaya]
             
+            # --- IMPROVED GPS FOR STATUS ---
+            st.markdown("##### 📍 Exact Location")
             components.html(f"""
-            <button onclick="getLocation()" style="width:100%; padding:12px; border-radius:8px; border:none; background:linear-gradient(90deg, #4facfe 0%, #00f2fe 100%); color:white; font-weight:600; cursor:pointer;">{t['get_gps']}</button>
-            <p id="gps-status" style="text-align:center; margin-top:10px; font-weight:bold;"></p>
+            <button onclick="getStatusGPS()" style="width:100%; padding:12px; border-radius:8px; border:none; background:linear-gradient(90deg, #4facfe 0%, #00f2fe 100%); color:white; font-weight:600; cursor:pointer;">{t['get_gps']}</button>
+            <p id="status-gps-status" style="text-align:center; margin-top:10px; font-weight:bold;"></p>
             <script>
-            function getLocation() {{ const s = document.getElementById('gps-status'); s.innerText = "Locating..."; if (navigator.geolocation) {{ navigator.geolocation.getCurrentPosition(p => {{ const url = new URL(window.parent.location.href); url.searchParams.set('gps_lat', p.coords.latitude); url.searchParams.set('gps_lon', p.coords.longitude); window.parent.location.href = url.href; }}, e => {{ s.innerText = "Error: " + e.message; s.style.color="red"; }}); }} else {{ s.innerText = "Not supported."; }} }}
+            function getStatusGPS() {{ 
+                const s = document.getElementById('status-gps-status'); 
+                s.innerText = "Locating... (Please wait)"; 
+                s.style.color = "blue";
+                if (navigator.geolocation) {{ 
+                    navigator.geolocation.getCurrentPosition(
+                        p => {{ 
+                            const url = new URL(window.parent.location.href); 
+                            url.searchParams.set('gps_lat', p.coords.latitude); 
+                            url.searchParams.set('gps_lon', p.coords.longitude); 
+                            window.parent.location.href = url.href; 
+                        }}, 
+                        e => {{ 
+                            if (e.code === 1) s.innerText = "Permission Denied. Use manual entry below.";
+                            else if (e.code === 3) s.innerText = "Timeout. Use manual entry below.";
+                            else s.innerText = "Error. Use manual entry below.";
+                            s.style.color = "red"; 
+                        }},
+                        {{ enableHighAccuracy: false, timeout: 15000, maximumAge: 0 }}
+                    ); 
+                }} else {{ s.innerText = "GPS not supported."; s.style.color="red"; }} 
+            }}
             </script>
-            """, height=80)
+            """, height=100)
+            
             if 'gps_lat' in st.query_params:
                 update_lat = float(st.query_params['gps_lat'])
                 update_lon = float(st.query_params['gps_lon'])
-                st.success(f"{t['gps_locked']}")
+                st.success(f"📍 {t['gps_locked']}")
+                
+            # Manual Fallback for Status
+            st.write("If button fails, paste coordinates here:")
+            c1, c2 = st.columns(2)
+            with c1: manual_lat_s = st.text_input("Latitude", key="man_lat_s")
+            with c2: manual_lon_s = st.text_input("Longitude", key="man_lon_s")
+            if manual_lat_s and manual_lon_s:
+                try:
+                    update_lat = float(manual_lat_s)
+                    update_lon = float(manual_lon_s)
+                    st.success("📍 Coordinates set manually!")
+                except:
+                    st.error("Invalid coordinates.")
 
         if new_state_code == "R":
             return_date = st.date_input(t['return_date'], min_value=date.today())
@@ -180,16 +217,16 @@ def render_portal():
         task_notes = st.text_area(t['task_notes'])
         uploaded_file = st.file_uploader(t['task_photo'], type=['jpg', 'jpeg', 'png'])
         
-    # GPS for Task
+        # --- IMPROVED GPS FOR TASK ---
+        st.markdown("##### 📍 Location")
         components.html(f"""
         <button onclick="getTaskGPS()" style="width:100%; padding:12px; border-radius:8px; border:none; background:#0078D7; color:white; font-weight:600; cursor:pointer;">📍 {t['get_gps']}</button>
         <p id="task-gps-status" style="text-align:center; margin-top:10px; font-weight:bold;"></p>
         <script>
         function getTaskGPS() {{ 
             const s = document.getElementById('task-gps-status'); 
-            s.innerText = "Locating... (Please wait up to 15s)"; 
+            s.innerText = "Locating... (Please wait)"; 
             s.style.color = "blue";
-            
             if (navigator.geolocation) {{ 
                 navigator.geolocation.getCurrentPosition(
                     p => {{ 
@@ -199,34 +236,39 @@ def render_portal():
                         window.parent.location.href = url.href; 
                     }}, 
                     e => {{ 
-                        if (e.code === 1) {{
-                            s.innerText = "Permission Denied. You must click 'Allow' when the browser asks for location."; 
-                        }} else if (e.code === 3) {{
-                            s.innerText = "Timeout. Your phone's GPS might be off, or you are indoors. Try stepping outside."; 
-                        }} else {{
-                            s.innerText = "Error: " + e.message; 
-                        }}
+                        if (e.code === 1) s.innerText = "Permission Denied. Use manual entry below.";
+                        else if (e.code === 3) s.innerText = "Timeout. Use manual entry below.";
+                        else s.innerText = "Error. Use manual entry below.";
                         s.style.color = "red"; 
                     }},
-                    {{ 
-                        enableHighAccuracy: false, // Use faster network location instead of slow satellites
-                        timeout: 15000,            // Wait up to 15 seconds
-                        maximumAge: 0              // Don't use old cached location
-                    }}
+                    {{ enableHighAccuracy: false, timeout: 15000, maximumAge: 0 }}
                 ); 
-            }} else {{ 
-                s.innerText = "GPS not supported on this device."; 
-                s.style.color = "red";
-            }} 
+            }} else {{ s.innerText = "GPS not supported."; s.style.color="red"; }} 
         }}
         </script>
         """, height=100)
         
         task_lat, task_lon = None, None
+        
+        # Check if GPS was captured in URL
         if 'task_lat' in st.query_params:
             task_lat = float(st.query_params['task_lat'])
             task_lon = float(st.query_params['task_lon'])
             st.success(f"📍 {t['gps_locked']}")
+            
+        # --- MANUAL FALLBACK FOR TASK ---
+        st.write("If the button above fails, open Google Maps, copy your coordinates, and paste them here:")
+        c1, c2 = st.columns(2)
+        with c1: manual_lat_t = st.text_input("Enter Latitude", key="man_lat_t")
+        with c2: manual_lon_t = st.text_input("Enter Longitude", key="man_lon_t")
+        
+        if manual_lat_t and manual_lon_t:
+            try:
+                task_lat = float(manual_lat_t)
+                task_lon = float(manual_lon_t)
+                st.success("📍 Coordinates set manually!")
+            except:
+                st.error("Invalid coordinates. Please enter numbers only.")
 
         if st.button(t['submit_task'], type="primary", use_container_width=True):
             if task_lat is None:
