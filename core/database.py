@@ -3,6 +3,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 import streamlit as st
 
+@st.cache_resource
 def get_connection():
     # Try to get the URL from Streamlit secrets (works on cloud and locally if secrets.toml exists)
     try:
@@ -63,7 +64,6 @@ def init_db():
     )''')
 
     conn.commit()
-    conn.close()
     print("Supabase PostgreSQL initialized successfully!")
 
 if __name__ == "__main__":
