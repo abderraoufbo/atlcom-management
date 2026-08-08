@@ -1,26 +1,36 @@
-import sqlite3
 import os
-from pathlib import Path
-
-DB_DIR = Path(__file__).parent.parent / "data"
-DB_DIR.mkdir(exist_ok=True)
-DB_PATH = DB_DIR / "pm_database.db"
+import psycopg2
+from psycopg2.extras import RealDictCursor
+import streamlit as st
 
 def get_connection():
-    return sqlite3.connect(DB_PATH)
+    # Try to get the URL from Streamlit secrets (works on cloud and locally if secrets.toml exists)
+    try:
+        db_url = st.secrets["database"]["url"]
+    except:
+        # Fallback for local testing if secrets.toml is missing
+        db_url = os.environ.get("DATABASE_URL")
+        
+    if not db_url:
+        raise ValueError("Database URL not found! Please set it in .streamlit/secrets.toml")
+        
+    # Connect to PostgreSQL
+    conn = psycopg2.connect(db_url)
+    return conn
 
 def init_db():
     conn = get_connection()
     c = conn.cursor()
-
-    c.execute('''CREATE TABLE IF NOT EXISTS clients (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE NOT NULL)''')
-    c.execute('''CREATE TABLE IF NOT EXISTS materials (id INTEGER PRIMARY KEY AUTOINCREMENT, part_number TEXT, material_name TEXT UNIQUE NOT NULL, nature TEXT)''')
-    c.execute('''CREATE TABLE IF NOT EXISTS ota_materials (id INTEGER PRIMARY KEY AUTOINCREMENT, nature TEXT, designation TEXT UNIQUE NOT NULL, pn TEXT)''')
-    c.execute('''CREATE TABLE IF NOT EXISTS oa_materials (id INTEGER PRIMARY KEY AUTOINCREMENT, material_name TEXT UNIQUE NOT NULL)''')
-    c.execute('''CREATE TABLE IF NOT EXISTS lift_crane_items (id INTEGER PRIMARY KEY AUTOINCREMENT, item_code TEXT, item_name TEXT UNIQUE NOT NULL, item_by TEXT)''')
+    
+    # PostgreSQL syntax for creating tables (SERIAL instead of AUTOINCREMENT)
+    c.execute('''CREATE TABLE IF NOT EXISTS clients (id SERIAL PRIMARY KEY, name TEXT UNIQUE NOT NULL)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS materials (id SERIAL PRIMARY KEY, part_number TEXT, material_name TEXT UNIQUE NOT NULL, nature TEXT)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS ota_materials (id SERIAL PRIMARY KEY, nature TEXT, designation TEXT UNIQUE NOT NULL, pn TEXT)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS oa_materials (id SERIAL PRIMARY KEY, material_name TEXT UNIQUE NOT NULL)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS lift_crane_items (id SERIAL PRIMARY KEY, item_code TEXT, item_name TEXT UNIQUE NOT NULL, item_by TEXT)''')
     
     c.execute('''CREATE TABLE IF NOT EXISTS teams (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         team_name TEXT UNIQUE NOT NULL,
         leader_id TEXT,
         leader_name TEXT,
@@ -42,9 +52,8 @@ def init_db():
         notes TEXT
     )''')
     
-    # NEW: Team History Table
     c.execute('''CREATE TABLE IF NOT EXISTS team_history (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         team_name TEXT,
         activity_type TEXT,
         location TEXT,
@@ -53,20 +62,9 @@ def init_db():
         duration_days REAL
     )''')
 
-    def add_column_if_missing(cursor, table_name, col_name, col_type):
-        cursor.execute(f"PRAGMA table_info({table_name})")
-        columns = [info[1] for info in cursor.fetchall()]
-        if col_name not in columns:
-            cursor.execute(f"ALTER TABLE {table_name} ADD COLUMN {col_name} {col_type}")
-
-    for col, typ in [("leader_id", "TEXT"), ("leader_name", "TEXT"), ("wilaya", "TEXT"), ("region", "TEXT"), 
-                     ("current_project", "TEXT"), ("status_notes", "TEXT"), ("state_code", "TEXT"),
-                     ("home_lat", "REAL"), ("home_lon", "REAL"), ("home_location_name", "TEXT"), 
-                     ("start_date", "TEXT"), ("return_to_work_date", "TEXT")]:
-        add_column_if_missing(c, "teams", col, typ)
-    
     conn.commit()
     conn.close()
+    print("Supabase PostgreSQL initialized successfully!")
 
 if __name__ == "__main__":
     init_db()
