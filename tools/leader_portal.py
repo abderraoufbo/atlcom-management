@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import sqlite3
 import pandas as pd
 from datetime import date, datetime
@@ -29,6 +30,8 @@ portal_translations = {
         'error_site': "Please enter the Site ID.",
         'success': "Status updated successfully! The General Manager has been notified.",
         'logout': "Logout",
+        'get_gps': "📍 Get My Exact GPS",
+        'gps_locked': "Exact GPS Locked!",
         'states': {"W": "🟢 Working", "R": "🟠 Resting", "S": "🔵 Stand-by", "T": "🔴 On Road", "P": "🔴 Urgency"}
     },
     'FR': {
@@ -50,6 +53,8 @@ portal_translations = {
         'error_site': "Veuillez entrer l'ID du site.",
         'success': "Statut mis à jour avec succès ! Le directeur a été notifié.",
         'logout': "Déconnexion",
+        'get_gps': "📍 Obtenir mon GPS exact",
+        'gps_locked': "GPS exact verrouillé !",
         'states': {"W": "🟢 En Travail", "R": "🟠 En Repos", "S": "🔵 Disponible", "T": "🔴 En Route", "P": "🔴 Urgence"}
     },
     'AR': {
@@ -71,12 +76,13 @@ portal_translations = {
         'error_site': "الرجاء إدخال رقم الموقع.",
         'success': "تم تحديث الحالة بنجاح! تم إبلاغ المدير العام.",
         'logout': "تسجيل الخروج",
+        'get_gps': "📍 احصل على موقعي الدقيق",
+        'gps_locked': "تم تحديد الموقع الدقيق!",
         'states': {"W": "🟢 يعمل", "R": "🟠 في راحة", "S": "🔵 مستعد", "T": "🔴 على الطريق", "P": "🔴 طارئ"}
     }
 }
 
 def render_portal():
-    # Initialize language for portal
     if 'portal_lang' not in st.session_state:
         st.session_state.portal_lang = 'EN'
     
@@ -92,7 +98,6 @@ def render_portal():
     </style>
     """, unsafe_allow_html=True)
     
-    # Language Selector at the top
     col1, col2 = st.columns([3, 1])
     with col2:
         lang_select = st.selectbox(f"🌍 {t['language']}", ['EN', 'FR', 'AR'], key='lang_select_portal', label_visibility="collapsed")
@@ -102,7 +107,6 @@ def render_portal():
             
     st.title(t['title'])
     
-    # --- AUTO LOGIN FROM URL ---
     query_params = st.query_params
     if 'lid' in query_params and not st.session_state.get('leader_logged_in'):
         leader_id = query_params['lid']
@@ -116,11 +120,9 @@ def render_portal():
     if 'leader_logged_in' not in st.session_state:
         st.session_state.leader_logged_in = False
         
-    # --- LOGIN SCREEN ---
     if not st.session_state.leader_logged_in:
         st.subheader(t['login'])
         leader_id = st.text_input(t['enter_id'])
-        
         if st.button(t['login'], type="primary", use_container_width=True):
             conn = get_connection()
             df = pd.read_sql_query("SELECT * FROM teams WHERE leader_id=?", conn, params=(leader_id,))
@@ -134,7 +136,6 @@ def render_portal():
                 st.error(t['invalid'])
         return
 
-    # --- DASHBOARD FOR LEADER ---
     team = st.session_state.leader_data
     st.success(f"{t['welcome']} {team['leader_name']} ({team['team_name']})")
     
@@ -144,10 +145,8 @@ def render_portal():
     st.divider()
     st.subheader(t['update_status'])
     
-    # States translated for the dropdown
     state_options = ["W", "R", "S", "T", "P"]
     state_labels = [f"{s} - {t['states'][s]}" for s in state_options]
-    
     selected_idx = st.selectbox(t['new_state'], range(len(state_labels)), format_func=lambda x: state_labels[x])
     new_state_code = state_options[selected_idx]
     
@@ -158,8 +157,69 @@ def render_portal():
     if new_state_code == "W":
         new_loc = st.text_input(t['site_id'], value=team.get('current_location_name') or "")
         new_wilaya = st.selectbox(t['select_wilaya'], list(ALGERIAN_WILAYAS.keys()), index=list(ALGERIAN_WILAYAS.keys()).index(team.get('wilaya')) if team.get('wilaya') in ALGERIAN_WILAYAS else 0)
+        
+        # Default to Wilaya center
         update_lat, update_lon = ALGERIAN_WILAYAS[new_wilaya]
         
+        # --- EXACT GPS TRACKING BUTTON ---
+        st.markdown("##### 📍 Exact Location (Optional)")
+        # HTML/JS to grab GPS from the phone
+        components.html(f"""
+        <button onclick="getLocation()" style="width:100%; padding:12px; border-radius:8px; border:none; background:linear-gradient(90deg, #4facfe 0%, #00f2fe 100%); color:white; font-weight:600; cursor:pointer;">{t['get_gps']}</button>
+        <p id="gps-status" style="text-align:center; margin-top:10px; font-weight:bold;"></p>
+        <script>
+        function getLocation() {{
+            const status = document.getElementById('gps-status');
+            status.innerText = "Locating...";
+            if (navigator.geolocation) {{
+                navigator.geolocation.getCurrentPosition(showPosition, showError);
+            }} else {{
+                status.innerText = "Geolocation is not supported by this browser.";
+            }}
+        }}
+        function showPosition(position) {{
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            const status = document.getElementById('gps-status');
+            status.innerText = "{t['gps_locked']}";
+            status.style.color = "green";
+            
+            // Send data back to Streamlit by updating URL params
+            const url = new URL(window.parent.location.href);
+            url.searchParams.set('gps_lat', lat);
+            url.searchParams.set('gps_lon', lon);
+            window.parent.location.href = url.href;
+        }}
+        function showError(error) {{
+            const status = document.getElementById('gps-status');
+            switch(error.code) {{
+                case error.PERMISSION_DENIED:
+                    status.innerText = "Location permission denied.";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    status.innerText = "Location information is unavailable.";
+                    break;
+                case error.TIMEOUT:
+                    status.innerText = "Request timed out.";
+                    break;
+                case error.UNKNOWN_ERROR:
+                    status.innerText = "An unknown error occurred.";
+                    break;
+            }}
+            status.style.color = "red";
+        }}
+        </script>
+        """, height=120)
+        
+        # Check if GPS was captured in URL params
+        if 'gps_lat' in st.query_params and 'gps_lon' in st.query_params:
+            try:
+                update_lat = float(st.query_params['gps_lat'])
+                update_lon = float(st.query_params['gps_lon'])
+                st.success(f"{t['gps_locked']} ({update_lat}, {update_lon})")
+            except:
+                pass
+                
     if new_state_code == "R":
         return_date = st.date_input(t['return_date'], min_value=date.today())
         update_lat = team.get('home_lat') if pd.notna(team.get('home_lat')) else DEFAULT_LAT
