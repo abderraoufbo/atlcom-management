@@ -181,11 +181,35 @@ def render_portal():
         uploaded_file = st.file_uploader(t['task_photo'], type=['jpg', 'jpeg', 'png'])
         
         # GPS for Task
+               # GPS for Task
         components.html(f"""
         <button onclick="getTaskGPS()" style="width:100%; padding:12px; border-radius:8px; border:none; background:#0078D7; color:white; font-weight:600; cursor:pointer;">📍 {t['get_gps']}</button>
         <p id="task-gps-status" style="text-align:center; margin-top:10px; font-weight:bold;"></p>
         <script>
-        function getTaskGPS() {{ const s = document.getElementById('task-gps-status'); s.innerText = "Locating..."; if (navigator.geolocation) {{ navigator.geolocation.getCurrentPosition(p => {{ const url = new URL(window.parent.location.href); url.searchParams.set('task_lat', p.coords.latitude); url.searchParams.set('task_lon', p.coords.longitude); window.parent.location.href = url.href; }}, e => {{ s.innerText = "Error: " + e.message; s.style.color="red"; }}); }} }}
+        function getTaskGPS() {{ 
+            const s = document.getElementById('task-gps-status'); 
+            s.innerText = "Locating... (Please wait)"; 
+            s.style.color = "blue";
+            
+            if (navigator.geolocation) {{ 
+                navigator.geolocation.getCurrentPosition(
+                    p => {{ 
+                        const url = new URL(window.parent.location.href); 
+                        url.searchParams.set('task_lat', p.coords.latitude); 
+                        url.searchParams.set('task_lon', p.coords.longitude); 
+                        window.parent.location.href = url.href; 
+                    }}, 
+                    e => {{ 
+                        s.innerText = "Error: " + e.message + ". Please check your phone's location settings."; 
+                        s.style.color = "red"; 
+                    }},
+                    {{ timeout: 10000 }} // 10 second timeout
+                ); 
+            }} else {{ 
+                s.innerText = "GPS not supported on this device."; 
+                s.style.color = "red";
+            }} 
+        }}
         </script>
         """, height=80)
         
