@@ -193,7 +193,8 @@ def render_portal():
     st.success(f"{t['welcome']} {team['leader_name']} ({team['team_name']})")
     
     # Menu Selection
-    menu_idx = st.radio("Menu", [0, 1], format_func=lambda x: t['menu_status'] if x == 0 else t['menu_task'], horizontal=True, label_visibility="collapsed", key="portal_menu_idx")
+    menu_idx = st.radio("Menu", [0, 1], format_func=lambda x: t['menu_status'] if x == 0 else t['menu_task'], horizontal=True, label_visibility="collapsed", index=st.session_state.portal_menu_idx)
+    st.session_state.portal_menu_idx = menu_idx
     
     if menu_idx == 0:
         # Show success message if we just redirected from task submission
