@@ -6,7 +6,7 @@ import sys, os
 
 sys.path.append(os.path.abspath("core"))
 from database import get_connection
-from dispatch_tool import ALGERIAN_WILAYAS, DEFAULT_LAT, DEFAULT_LON
+from tools.dispatch_tool import ALGERIAN_WILAYAS, DEFAULT_LAT, DEFAULT_LON
 
 def render_portal():
     st.markdown("""
