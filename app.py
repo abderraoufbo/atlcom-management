@@ -204,15 +204,51 @@ def get_css():
             color: {text_color} !important;
         }}
         
-        /* Unified Login Card */
-        .login-container {{ display: flex; justify-content: center; padding-top: 10vh; }}
-        .login-card {{ background-color: {glass_bg} !important; backdrop-filter: blur(12px) !important; padding: 40px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1) !important; border: 1px solid {glass_border} !important; width: 100%; max-width: 400px; }}
+        /* ==========================================
+           ULTRA PREMIUM LOGIN UI
+           ========================================== */
+        .login-container {{ display: flex; justify-content: center; align-items: center; min-height: 85vh; padding: 20px; }}
+        .login-card {{ 
+            background-color: {glass_bg} !important; 
+            backdrop-filter: blur(16px) !important; 
+            -webkit-backdrop-filter: blur(16px) !important; 
+            padding: 45px 40px; 
+            border-radius: 24px; 
+            box-shadow: 0 16px 50px rgba(0,0,0,0.2) !important; 
+            border: 1px solid {glass_border} !important; 
+            width: 100%; max-width: 420px; 
+            text-align: center;
+        }}
+        .login-icon-wrapper {{
+            width: 80px; height: 80px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 24px; margin: 0 auto 20px auto; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 8px 20px rgba(79, 172, 254, 0.3);
+        }}
+        .login-icon {{ font-size: 40px; }}
         
-                /* Unified Login Card UI */
-        .login-container {{ display: flex; justify-content: center; align-items: center; min-height: 80vh; }}
-        .login-card {{ background-color: {glass_bg} !important; backdrop-filter: blur(16px) !important; -webkit-backdrop-filter: blur(16px) !important; padding: 40px; border-radius: 20px; box-shadow: 0 12px 40px rgba(0,0,0,0.15) !important; border: 1px solid {glass_border} !important; width: 100%; max-width: 420px; text-align: center; }}
-        .login-icon {{ font-size: 50px; margin-bottom: 10px; display: block; }}
-
+        /* Custom Radio Buttons for Login (Pill Style) */
+        .login-card .stRadio > div {{ flex-direction: row; display: flex; gap: 10px; background: transparent; }}
+        .login-card .stRadio > div > label {{
+            background: {input_bg} !important;
+            border: 1px solid {glass_border} !important;
+            padding: 12px !important;
+            border-radius: 12px !important;
+            flex: 1 !important;
+            text-align: center !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+        }}
+        .login-card .stRadio > div > label:hover {{
+            background: {glass_bg} !important;
+        }}
+        .login-card .stRadio > div > label[data-checked="true"] {{
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%) !important;
+            color: white !important;
+            border-color: transparent !important;
+        }}
+        .login-card .stRadio > div > label > div:first-child {{ display: none !important; }}
+        .login-card .stRadio > div > label > div:last-child {{ width: 100% !important; font-size: 14px; font-weight: 600; }}
+        
         @media only screen and (max-width: 768px) {{
             .block-container {{ padding-top: 4rem !important; padding-left: 1rem !important; padding-right: 1rem !important; max-width: 100% !important; }}
             [data-testid="stHorizontalBlock"] {{ flex-direction: column !important; width: 100% !important; align-items: center !important; gap: 10px !important; }}
@@ -226,6 +262,10 @@ def get_css():
             iframe, .stDataFrame {{ width: 100% !important; max-width: 100% !important; }}
             .stTabs [data-baseweb="tab-list"] {{ gap: 5px; padding: 5px; overflow-x: auto; }}
             .stTabs [data-baseweb="tab"] {{ padding: 8px 12px; font-size: 14px; white-space: nowrap; }}
+            
+            /* Mobile Login Adjustments */
+            .login-card {{ padding: 30px 20px; }}
+            .login-card .stRadio > div {{ flex-direction: column; }}
         }}
     </style>
     """
@@ -265,11 +305,11 @@ elif st.session_state.get('role') == 'driver':
     driver_portal.render_portal()
     st.stop()
 elif not st.session_state.get('manager_logged_in'):
-    # --- UNIFIED LOGIN PAGE ---
+    # --- ULTRA PREMIUM LOGIN PAGE ---
     st.markdown("<div class='login-container'><div class='login-card'>", unsafe_allow_html=True)
-    st.markdown("<span class='login-icon'>🛠️</span>", unsafe_allow_html=True)
+    st.markdown("<div class='login-icon-wrapper'><span class='login-icon'>🛠️</span></div>", unsafe_allow_html=True)
     st.markdown("<h1 style='font-weight: 800; margin-bottom: 5px;'>ATLCOM</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='opacity: 0.7; margin-bottom: 25px;'>Management Portal</p>", unsafe_allow_html=True)
+    st.markdown("<p style='opacity: 0.7; margin-bottom: 30px;'>Management Portal</p>", unsafe_allow_html=True)
     
     role = st.radio("Select Role", ["Manager", "Team Leader", "Driver"], horizontal=True)
     
@@ -350,9 +390,9 @@ with st.sidebar.expander(f"⚙️ {t['settings']}"):
 st.sidebar.markdown("---")
 
 # Manager Logout Button
-if st.sidebar.button("Logout", use_container_width=True):
-    st.query_params.clear()
+if st.sidebar.button("🚪 Logout", use_container_width=True):
     st.session_state.clear()
+    st.query_params.clear()
     st.rerun()
 
 t = translations[st.session_state.lang]
