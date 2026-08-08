@@ -17,7 +17,7 @@ from tools import dispatch_tool
 from tools import leader_portal
 from tools import driver_portal
 
-# --- PAGE CONFIG (Added favicon.ico) ---
+# --- PAGE CONFIG ---
 st.set_page_config(page_title="ATLCOM Management", page_icon="favicon.ico", layout="wide", initial_sidebar_state="expanded")
 
 # --- COMPREHENSIVE TRANSLATIONS DICTIONARY ---
@@ -88,6 +88,8 @@ def get_css():
         card_title_color = "#94a3b8"
         input_bg = "rgba(15, 23, 42, 0.5)"
         df_bg = "rgba(15, 23, 42, 0.8)"
+        login_bg = "rgba(30, 41, 59, 0.45)"
+        login_input_bg = "rgba(15, 23, 42, 0.6)"
     else:
         body_bg = "linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%)"
         glass_bg = "rgba(255, 255, 255, 0.65)"
@@ -96,6 +98,8 @@ def get_css():
         card_title_color = "#64748b"
         input_bg = "rgba(255, 255, 255, 0.5)"
         df_bg = "rgba(255, 255, 255, 0.8)"
+        login_bg = "rgba(255, 255, 255, 0.45)"
+        login_input_bg = "rgba(255, 255, 255, 0.6)"
         
     direction = "rtl" if is_ar else "ltr"
     text_align = "right" if is_ar else "left"
@@ -117,14 +121,13 @@ def get_css():
             color: {text_color} !important;
         }}
         
-        /* Make Header Transparent so it looks clean, but keep the sidebar button! */
-        header[data-testid="stHeader"] {{
-            background-color: transparent !important;
-        }}
-        
-        /* Hide ONLY the ugly menu buttons, but KEEP the sidebar toggle button! */
+        /* Fix Header & Sidebar Button */
+        header[data-testid="stHeader"] {{ background-color: transparent !important; }}
         #MainMenu {{ visibility: hidden !important; }}
         footer {{ visibility: hidden !important; }}
+        [data-testid="stSidebarCollapseButton"], button[kind="header"] {{
+            display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 999999 !important;
+        }}
         
         section[data-testid="stSidebar"] {{
             background-color: {glass_bg} !important;
@@ -133,39 +136,23 @@ def get_css():
             border-left: 1px solid {glass_border} !important;
             border-right: 1px solid {glass_border} !important;
         }}
-        [data-testid="stSidebar"] div[role="radiogroup"] {{
-            gap: 12px; display: flex; flex-direction: column; width: 100%;
-        }}
+        [data-testid="stSidebar"] div[role="radiogroup"] {{ gap: 12px; display: flex; flex-direction: column; width: 100%; }}
         [data-testid="stSidebar"] div[role="radiogroup"] > label {{
             background: {input_bg} !important; backdrop-filter: blur(4px) !important;
             border: 1px solid {glass_border} !important; padding: 15px !important;
             border-radius: 12px !important; transition: all 0.3s ease !important;
             display: flex !important; align-items: center !important; cursor: pointer !important;
         }}
-        [data-testid="stSidebar"] div[role="radiogroup"] > label:hover {{
-            background: {glass_bg} !important; transform: translateX(5px) !important;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
-        }}
-        [data-testid="stSidebar"] div[role="radiogroup"] [aria-checked="true"] {{
-            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%) !important;
-            border-color: transparent !important; box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4) !important;
-        }}
-        [data-testid="stSidebar"] div[role="radiogroup"] [aria-checked="true"] > div,
-        [data-testid="stSidebar"] div[role="radiogroup"] [aria-checked="true"] > div > div {{
-            color: #ffffff !important;
-        }}
+        [data-testid="stSidebar"] div[role="radiogroup"] > label:hover {{ background: {glass_bg} !important; transform: translateX(5px) !important; box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important; }}
+        [data-testid="stSidebar"] div[role="radiogroup"] [aria-checked="true"] {{ background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%) !important; border-color: transparent !important; box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4) !important; }}
+        [data-testid="stSidebar"] div[role="radiogroup"] [aria-checked="true"] > div, [data-testid="stSidebar"] div[role="radiogroup"] [aria-checked="true"] > div > div {{ color: #ffffff !important; }}
         [data-testid="stSidebar"] div[role="radiogroup"] > label > div:first-child {{ display: none !important; }}
         [data-testid="stSidebar"] div[role="radiogroup"] > label > div:last-child {{ width: 100% !important; }}
         
-        .stApp p, .stApp span, .stApp label, .stApp li, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6 {{
-            color: {text_color} !important;
-        }}
-        .stRadio > div > label, .stSelectbox > div > div > div {{
-            color: {text_color} !important;
-        }}
-        .block-container {{
-            padding-top: 2rem; padding-bottom: 3rem; max-width: 1200px; margin: 0 auto;
-        }}
+        .stApp p, .stApp span, .stApp label, .stApp li, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6 {{ color: {text_color} !important; }}
+        .stRadio > div > label, .stSelectbox > div > div > div {{ color: {text_color} !important; }}
+        .block-container {{ padding-top: 2rem; padding-bottom: 3rem; max-width: 1200px; margin: 0 auto; }}
+        
         .stButton > button, .stFormSubmitButton > button {{
             color: #ffffff !important; background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%) !important;
             border: none !important; border-radius: 8px !important; font-weight: 600 !important;
@@ -176,6 +163,8 @@ def get_css():
             box-shadow: 0 6px 12px rgba(79, 172, 254, 0.4) !important;
             background: linear-gradient(90deg, #00f2fe 0%, #4facfe 100%) !important;
         }}
+        
+        /* Dashboard Cards */
         div.card {{
             background-color: {glass_bg} !important; backdrop-filter: blur(12px) !important;
             -webkit-backdrop-filter: blur(12px) !important; padding: 25px; border-radius: 16px;
@@ -183,110 +172,131 @@ def get_css():
             margin-bottom: 15px; border-left: 4px solid #4facfe !important;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }}
-        div.card:hover {{
-            transform: translateY(-5px); box-shadow: 0 12px 40px rgba(79, 172, 254, 0.2) !important;
-        }}
+        div.card:hover {{ transform: translateY(-5px); box-shadow: 0 12px 40px rgba(79, 172, 254, 0.2) !important; }}
         .card-title {{ font-size: 14px; color: {card_title_color}; font-weight: 500; margin-bottom: 5px; }}
         .card-value {{ font-size: 32px; font-weight: 800; color: {text_color}; }}
-        .hero-banner {{
-            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%) !important; color: #ffffff !important;
-            padding: 30px; border-radius: 16px; margin-bottom: 25px; box-shadow: 0 8px 20px rgba(79, 172, 254, 0.3);
+        
+        /* Open Tasks Button styled exactly like a Card */
+        button[k="open_tasks_btn"] {{
+            background-color: {glass_bg} !important;
+            backdrop-filter: blur(12px) !important;
+            -webkit-backdrop-filter: blur(12px) !important;
+            border: 1px solid {glass_border} !important;
+            border-left: 4px solid #dc3545 !important;
+            border-radius: 16px !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+            color: {text_color} !important;
+            height: 100% !important;
+            min-height: 110px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: flex-start !important;
+            text-align: left !important;
+            font-weight: 700 !important;
+            transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+            margin-bottom: 15px !important;
         }}
+        button[k="open_tasks_btn"]:hover {{
+            transform: translateY(-5px) !important;
+            box-shadow: 0 12px 40px rgba(220, 53, 69, 0.2) !important;
+            background: {glass_bg} !important;
+        }}
+        
+        .hero-banner {{ background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%) !important; color: #ffffff !important; padding: 30px; border-radius: 16px; margin-bottom: 25px; box-shadow: 0 8px 20px rgba(79, 172, 254, 0.3); }}
         .hero-banner h2, .hero-banner p {{ color: #ffffff !important; margin: 0; }}
-        .tool-banner {{
-            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%) !important; color: #ffffff !important; 
-            padding: 15px 25px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3) !important;
-        }}
+        .tool-banner {{ background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%) !important; color: #ffffff !important; padding: 15px 25px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3) !important; }}
         .tool-banner h3, .tool-banner p {{ color: #ffffff !important; }}
         .stTabs [data-baseweb="tab-list"] {{ gap: 10px; background-color: transparent !important; padding: 10px 10px 0 10px; border-radius: 8px 8px 0 0; }}
         .stTabs [data-baseweb="tab"] {{ background-color: {input_bg} !important; backdrop-filter: blur(4px) !important; border-radius: 8px 8px 0 0; color: {text_color} !important; border: 1px solid {glass_border} !important; }}
         .stTabs [aria-selected="true"] {{ background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%) !important; color: #ffffff !important; }}
-        .stTextInput > div > div, .stSelectbox > div > div > div {{
-            background-color: {input_bg} !important; backdrop-filter: blur(4px) !important; border: 1px solid {glass_border} !important; border-radius: 8px; color: {text_color} !important;
-        }}
-        .stDataFrame {{
-            background-color: {df_bg} !important; backdrop-filter: blur(8px) !important; border: 1px solid {glass_border} !important; border-radius: 12px !important; padding: 10px !important;
-        }}
-        div[data-testid="stDataFrame"] div, div[data-testid="stTable"] div {{
-            color: {text_color} !important;
-        }}
+        .stTextInput > div > div, .stSelectbox > div > div > div {{ background-color: {input_bg} !important; backdrop-filter: blur(4px) !important; border: 1px solid {glass_border} !important; border-radius: 8px; color: {text_color} !important; }}
+        .stDataFrame {{ background-color: {df_bg} !important; backdrop-filter: blur(8px) !important; border: 1px solid {glass_border} !important; border-radius: 12px !important; padding: 10px !important; }}
+        div[data-testid="stDataFrame"] div, div[data-testid="stTable"] div {{ color: {text_color} !important; }}
         
         /* ==========================================
            ULTRA PREMIUM LOGIN UI
            ========================================== */
-        .login-container {{ display: flex; justify-content: center; padding-top: 2rem; }}
+        .login-container {{ display: flex; justify-content: center; align-items: center; min-height: 90vh; padding: 20px; }}
         .login-card {{ 
-            background-color: {glass_bg} !important; 
-            backdrop-filter: blur(16px) !important; 
-            -webkit-backdrop-filter: blur(16px) !important; 
-            padding: 45px 40px; 
-            border-radius: 24px; 
-            box-shadow: 0 16px 50px rgba(0,0,0,0.2) !important; 
-            border: 1px solid {glass_border} !important; 
-            width: 100%; max-width: 420px; 
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            background: {login_bg} !important; 
+            backdrop-filter: blur(24px) saturate(180%) !important; 
+            -webkit-backdrop-filter: blur(24px) saturate(180%) !important; 
+            padding: 50px 40px !important; 
+            border-radius: 28px !important; 
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 0 0 1px {glass_border} inset !important; 
+            width: 100% !important; max-width: 440px !important; 
+            text-align: center !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            border: none !important;
         }}
         .login-icon-wrapper {{
-            width: 80px; height: 80px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            border-radius: 24px; margin: 0 auto 20px auto; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 8px 20px rgba(79, 172, 254, 0.3);
+            width: 90px; height: 90px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 28px; margin: 0 auto 25px auto; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 10px 25px rgba(79, 172, 254, 0.4);
         }}
-        .login-icon {{ font-size: 40px; }}
+        .login-icon {{ font-size: 45px; }}
         
         /* Custom Radio Buttons for Login (Pill Style) */
-        .login-card .stRadio > div {{ flex-direction: row; display: flex; gap: 10px; background: transparent; width: 100%; }}
-        .login-card .stRadio > div > label {{
-            background: {input_bg} !important;
+        .login-card [data-testid="stRadio"] > div {{ flex-direction: row !important; display: flex !important; gap: 12px !important; background: transparent !important; width: 100% !important; }}
+        .login-card [data-testid="stRadio"] > div > label {{
+            background: {login_input_bg} !important;
             border: 1px solid {glass_border} !important;
-            padding: 12px !important;
-            border-radius: 12px !important;
+            padding: 15px 10px !important;
+            border-radius: 14px !important;
             flex: 1 !important;
             text-align: center !important;
             cursor: pointer !important;
-            transition: all 0.2s ease !important;
+            transition: all 0.3s ease !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            backdrop-filter: blur(4px) !important;
         }}
-        .login-card .stRadio > div > label:hover {{
-            background: {glass_bg} !important;
-        }}
-        .login-card .stRadio > div > label[data-checked="true"] {{
-            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%) !important;
+        .login-card [data-testid="stRadio"] > div > label:hover {{ background: {glass_bg} !important; transform: translateY(-2px) !important; }}
+        .login-card [data-testid="stRadio"] > div > label[data-checked="true"] {{
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
             color: white !important;
             border-color: transparent !important;
+            box-shadow: 0 6px 18px rgba(79, 172, 254, 0.35) !important;
         }}
-        .login-card .stRadio > div > label > div:first-child {{ display: none !important; }}
-        .login-card .stRadio > div > label > div:last-child {{ width: 100% !important; font-size: 14px; font-weight: 600; }}
+        .login-card [data-testid="stRadio"] > div > label > div:first-child {{ display: none !important; }}
+        .login-card [data-testid="stRadio"] > div > label > div:last-child {{ width: 100% !important; font-size: 15px !important; font-weight: 700 !important; }}
         
-        /* Force inputs and buttons to center inside the login card */
-        .login-card .stTextInput, .login-card .stButton {{ width: 100%; display: flex; justify-content: center; }}
+        /* Login Inputs */
+        .login-card .stTextInput > div > div {{
+            background: {login_input_bg} !important;
+            border: 1px solid {glass_border} !important;
+            border-radius: 12px !important;
+            padding: 10px 15px !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05) !important;
+        }}
+        .login-card .stTextInput > div > div:focus-within {{
+            border-color: #4facfe !important;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.2) !important;
+        }}
         
-                /* Custom styling for Open Tasks Button to look like a Card */
-        button[k="open_tasks_btn"] {{
-            background: linear-gradient(135deg, #dc3545 0%, #ff6b6b 100%) !important;
-            color: white !important;
-            height: 100% !important;
-            min-height: 110px !important; 
-            border-radius: 16px !important;
-            border: none !important;
-            box-shadow: 0 8px 20px rgba(220, 53, 69, 0.3) !important;
-            font-weight: 700 !important;
-            font-size: 16px !important;
-            white-space: pre-line !important; /* Allows \n to work as line break */
-            line-height: 1.5 !important;
+        /* Login Button */
+        .login-card .stButton {{ width: 100%; display: flex; justify-content: center; margin-top: 10px; }}
+        .login-card .stButton > button {{
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+            border: none !important; padding: 14px 0 !important; border-radius: 12px !important;
+            font-size: 16px !important; font-weight: 700 !important; letter-spacing: 0.5px !important;
+            box-shadow: 0 8px 20px rgba(79, 172, 254, 0.3) !important; transition: all 0.3s ease !important;
         }}
-        button[k="open_tasks_btn"]:hover {{
-            transform: translateY(-5px) !important;
-            box-shadow: 0 12px 24px rgba(220, 53, 69, 0.4) !important;
-            background: linear-gradient(135deg, #c82333 0%, #e04545 100%) !important;
+        .login-card .stButton > button:hover {{
+            transform: translateY(-3px) !important;
+            box-shadow: 0 12px 28px rgba(79, 172, 254, 0.45) !important;
         }}
-
+        
         @media only screen and (max-width: 768px) {{
             .block-container {{ padding-top: 4rem !important; padding-left: 1rem !important; padding-right: 1rem !important; max-width: 100% !important; }}
             [data-testid="stHorizontalBlock"] {{ flex-direction: column !important; width: 100% !important; align-items: center !important; gap: 10px !important; }}
             [data-testid="stHorizontalBlock"] > div {{ width: 100% !important; }}
             div.card {{ padding: 15px; margin-left: auto !important; margin-right: auto !important; width: 100% !important; box-sizing: border-box !important; border-left: none !important; border-top: 4px solid #4facfe !important; }}
+            button[k="open_tasks_btn"] {{ border-left: none !important; border-top: 4px solid #dc3545 !important; }}
             .card-value {{ font-size: 26px; }}
             .card-title {{ font-size: 12px; }}
             .hero-banner, .tool-banner {{ padding: 15px; border-radius: 12px; }}
@@ -297,8 +307,8 @@ def get_css():
             .stTabs [data-baseweb="tab"] {{ padding: 8px 12px; font-size: 14px; white-space: nowrap; }}
             
             /* Mobile Login Adjustments */
-            .login-card {{ padding: 30px 20px; }}
-            .login-card .stRadio > div {{ flex-direction: column; }}
+            .login-card {{ padding: 30px 20px !important; }}
+            .login-card [data-testid="stRadio"] > div {{ flex-direction: column !important; }}
         }}
     </style>
     """
@@ -503,8 +513,8 @@ if main_menu == t['menu_dashboard']:
         c.execute("SELECT COUNT(*) FROM tasks WHERE status='Open'")
         open_tasks = c.fetchone()[0]
         
-        # Native Streamlit Button styled as a card (No page reload, no new tab!)
-        if st.button(f"🚨 Open Tasks\n\n{open_tasks}", key="open_tasks_btn", use_container_width=True):
+        # Native Streamlit Button styled exactly like the glass cards
+        if st.button(f"🚨 Open Tasks\n\n⚠️ {open_tasks}", key="open_tasks_btn", use_container_width=True):
             st.session_state.show_tasks = not st.session_state.get('show_tasks', False)
 
     # Show Open Tasks Table if button is clicked
