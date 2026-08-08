@@ -14,13 +14,27 @@ sys.path.append(os.path.abspath("core"))
 from database import get_connection, release_connection
 from tools.dispatch_tool import ALGERIAN_WILAYAS, DEFAULT_LAT, DEFAULT_LON
 
-# Helper to compress images before saving to database
-def compress_image(uploaded_file, max_size=800):
-    img = Image.open(uploaded_file)
-    img.thumbnail((max_size, max_size))
-    buf = io.BytesIO()
-    img.save(buf, format='JPEG')
-    return base64.b64encode(buf.getvalue()).decode()
+# Helper to compress and resize images before saving to database
+def compress_image(uploaded_file, max_size=800, quality=70):
+    try:
+        img = Image.open(uploaded_file)
+        
+        # Convert to RGB to fix PNG transparency errors (RGBA cannot be saved as JPEG)
+        if img.mode in ("RGBA", "P"):
+            img = img.convert("RGB")
+            
+        # Resize the image to max_size (e.g., 800x800) to reduce file size
+        img.thumbnail((max_size, max_size))
+        
+        # Compress and save to memory buffer
+        buf = io.BytesIO()
+        img.save(buf, format='JPEG', quality=quality, optimize=True)
+        
+        # Encode to base64 string
+        return base64.b64encode(buf.getvalue()).decode()
+    except Exception as e:
+        st.error(f"Error processing image: {e}")
+        return None
 
 # Helper to extract coordinates from Google Maps link, raw coords, or shortlinks
 def extract_coords_from_link(link):
@@ -350,6 +364,7 @@ def render_portal():
             elif task_lat is None:
                 st.error("Location is required. Please use the GPS button or paste a valid Google Maps link.")
             else:
+                # Compress image before saving
                 photo_b64 = compress_image(uploaded_file) if uploaded_file else None
                 conn = get_connection()
                 c = conn.cursor()
