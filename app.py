@@ -568,7 +568,7 @@ if main_menu == t['menu_dashboard']:
         st.markdown(f"<div class='card' style='border-left-color: #00f2fe !important;'><div class='card-title'>{t['total_inventory']}</div><div class='card-value'><span style='font-size: 28px; margin-right: 10px;'>📦</span>{total_mats}</div></div>", unsafe_allow_html=True)
     with col3:
         st.markdown(f"<div class='card' style='border-left-color: #f093fb !important;'><div class='card-title'>Files Generated</div><div class='card-value'><span style='font-size: 28px; margin-right: 10px;'>📝</span>{total_docs}</div></div>", unsafe_allow_html=True)
-        
+
     # --- AUDIT TRAIL TABLE ---
     st.markdown(f"<h3 style='margin-top: 30px; font-weight: 600; margin-bottom: 15px;'>📜 Recent Generated Files (Audit Trail)</h3>", unsafe_allow_html=True)
     if not df_docs.empty:
