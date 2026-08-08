@@ -117,23 +117,14 @@ def get_css():
             color: {text_color} !important;
         }}
         
-         /* ==========================================
-           FIX: HIDE WHITE TOOLBAR BUT KEEP SIDEBAR BUTTON
-           ========================================== */
+        /* Make Header Transparent so it looks clean, but keep the sidebar button! */
         header[data-testid="stHeader"] {{
             background-color: transparent !important;
         }}
-        /* Hide ONLY the ugly menu/share buttons */
-        div[data-testid="stToolbar"], div[data-testid="stMainMenu"] {{
-            display: none !important;
-        }}
-        /* FORCE the sidebar toggle button to stay visible */
-        [data-testid="stSidebarCollapseButton"], button[kind="header"] {{
-            display: flex !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-            z-index: 999999 !important;
-        }}
+        
+        /* Hide ONLY the ugly menu buttons, but KEEP the sidebar toggle button! */
+        #MainMenu {{ visibility: hidden !important; }}
+        footer {{ visibility: hidden !important; }}
         
         section[data-testid="stSidebar"] {{
             background-color: {glass_bg} !important;
@@ -221,7 +212,7 @@ def get_css():
         }}
         
         /* ==========================================
-           ULTRA PREMIUM LOGIN UI (FIXED CENTERING)
+           ULTRA PREMIUM LOGIN UI
            ========================================== */
         .login-container {{ display: flex; justify-content: center; padding-top: 2rem; }}
         .login-card {{ 
@@ -296,7 +287,8 @@ st.markdown(get_css(), unsafe_allow_html=True)
 
 init_db()
 
-st.sidebar.markdown("") # Forces the sidebar and toggle button to exist on all pages
+# Force sidebar to exist so the toggle button shows up on the login screen
+st.sidebar.markdown("")
 
 # --- UNIFIED SESSION INIT FROM URL ---
 def init_session():
