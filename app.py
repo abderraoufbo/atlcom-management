@@ -122,10 +122,10 @@ def get_css():
         
         /* Typography */
         .stApp p, .stApp span, .stApp label, .stApp li, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6 {{ color: {text_color} !important; }}
-        .block-container {{ padding-top: 6rem !important; padding-bottom: 3rem; max-width: 1200px; margin: 0 auto; }}
+        .block-container {{ padding-top: 7rem !important; padding-bottom: 3rem; max-width: 1200px; margin: 0 auto; }}
         
         /* ==========================================
-           PREMIUM GLASS TOP HEADER
+           PREMIUM GLASS TOP HEADER (FIXED WIDTH & FLEX)
            ========================================== */
         .top-header {{
             position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
@@ -133,11 +133,12 @@ def get_css():
             backdrop-filter: blur(16px) saturate(180%) !important;
             -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
             border-bottom: 1px solid {glass_border} !important;
-            padding: 10px 20px;
+            padding: 10px 24px;
             display: flex; align-items: center; justify-content: space-between;
             box-shadow: 0 4px 20px rgba(0,0,0,0.05) !important;
         }}
-        .header-logo {{ font-size: 20px; font-weight: 800; color: #0078D7; display: flex; align-items: center; gap: 10px; }}
+        .header-logo {{ font-size: 20px; font-weight: 800; color: #0078D7; display: flex; align-items: center; gap: 10px; white-space: nowrap; }}
+        .header-logo img {{ width: 32px; height: 32px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }}
         
         /* Navigation Pills inside Header */
         .top-header [data-testid="stRadio"] > div {{ flex-direction: row !important; display: flex !important; gap: 8px !important; background: transparent !important; }}
@@ -155,6 +156,13 @@ def get_css():
         }}
         .top-header [data-testid="stRadio"] > div > label > div:first-child {{ display: none !important; }}
         .top-header [data-testid="stRadio"] > div > label > div:last-child {{ width: 100% !important; font-size: 14px !important; font-weight: 600 !important; text-align: center !important; }}
+        
+        /* Header Right Side Controls (Flexbox to prevent wrapping) */
+        .header-controls {{ display: flex !important; align-items: center !important; gap: 12px !important; justify-content: flex-end !important; }}
+        .header-controls > div {{ min-width: auto !important; width: auto !important; }}
+        .header-controls [data-testid="stSelectbox"] > div > div {{ min-width: 110px !important; padding: 8px 12px !important; border-radius: 10px !important; border: 1px solid {glass_border} !important; background: {input_bg} !important; }}
+        .header-controls button {{ white-space: nowrap !important; padding: 8px 16px !important; border-radius: 10px !important; border: 1px solid #dc3545 !important; background: rgba(220, 53, 69, 0.1) !important; color: #dc3545 !important; font-weight: 600 !important; box-shadow: none !important; }}
+        .header-controls button:hover {{ background: #dc3545 !important; color: white !important; border-color: transparent !important; }}
         
         /* Buttons */
         .stButton > button, .stFormSubmitButton > button {{
@@ -213,8 +221,8 @@ def get_css():
             text-align: center !important;
             display: flex !important; flex-direction: column !important; align-items: center !important; border: none !important;
         }}
-        .login-icon-wrapper {{ width: 90px; height: 90px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); border-radius: 28px; margin: 0 auto 25px auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(79, 172, 254, 0.4); }}
-        .login-icon {{ font-size: 45px; }}
+        .login-icon-wrapper {{ width: 90px; height: 90px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); border-radius: 28px; margin: 0 auto 25px auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(79, 172, 254, 0.4); overflow: hidden; }}
+        .login-icon-wrapper img {{ width: 50px; height: 50px; border-radius: 12px; }}
         
         .login-card [data-testid="stRadio"] > div {{ flex-direction: row !important; display: flex !important; gap: 12px !important; background: transparent !important; width: 100% !important; }}
         .login-card [data-testid="stRadio"] > div > label {{
@@ -238,7 +246,8 @@ def get_css():
         
         @media only screen and (max-width: 768px) {{
             .top-header {{ flex-direction: column; gap: 10px; padding: 10px; }}
-            .block-container {{ padding-top: 12rem !important; padding-left: 1rem !important; padding-right: 1rem !important; max-width: 100% !important; }}
+            .header-controls {{ width: 100% !important; justify-content: center !important; }}
+            .block-container {{ padding-top: 14rem !important; padding-left: 1rem !important; padding-right: 1rem !important; max-width: 100% !important; }}
             [data-testid="stHorizontalBlock"] {{ flex-direction: column !important; width: 100% !important; align-items: center !important; gap: 10px !important; }}
             .login-card {{ margin-top: 2vh !important; padding: 30px 20px !important; }}
             .login-card [data-testid="stRadio"] > div {{ flex-direction: column !important; }}
@@ -285,7 +294,7 @@ elif not st.session_state.get('manager_logged_in'):
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.markdown("<div class='login-card'>", unsafe_allow_html=True)
-        st.markdown("<div class='login-icon-wrapper'><span class='login-icon'>🛠️</span></div>", unsafe_allow_html=True)
+        st.markdown("<div class='login-icon-wrapper'><img src='favicon.ico' alt='logo'></div>", unsafe_allow_html=True)
         st.markdown("<h1 style='font-weight: 800; margin-bottom: 5px;'>ATLCOM</h1>", unsafe_allow_html=True)
         st.markdown("<p style='opacity: 0.7; margin-bottom: 30px;'>Management Portal</p>", unsafe_allow_html=True)
         
@@ -349,31 +358,43 @@ TOOL_HIERARCHY = {
 
 # --- PREMIUM GLASS TOP HEADER ---
 st.markdown("<div class='top-header'>", unsafe_allow_html=True)
-col1, col2, col3 = st.columns([1, 3, 1])
+col1, col2, col3 = st.columns([1.2, 3, 2.5])
 
 with col1:
-    st.markdown("<div class='header-logo'>🛠️ ATLCOM</div>", unsafe_allow_html=True)
+    st.markdown("<div class='header-logo'><img src='favicon.ico' alt='logo'> ATLCOM</div>", unsafe_allow_html=True)
 
 with col2:
     main_menu = st.radio("Menu", [t['menu_dashboard'], t['menu_dispatch'], t['menu_materials'], t['menu_tools']], horizontal=True, label_visibility="collapsed", key="top_nav")
 
 with col3:
-    c_lang, c_theme, c_out = st.columns(3)
-    with c_lang:
-        lang = st.selectbox("Lang", ['EN', 'FR', 'AR'], key='lang_select', label_visibility="collapsed")
-        if lang != st.session_state.lang:
-            st.session_state.lang = lang
-            st.rerun()
-    with c_theme:
-        theme = st.selectbox("Theme", ['Light', 'Dark'], key='theme_select', label_visibility="collapsed")
-        if theme != st.session_state.theme:
-            st.session_state.theme = theme
-            st.rerun()
-    with c_out:
-        if st.button("Logout", key="logout_btn", use_container_width=True):
-            st.session_state.clear()
-            st.query_params.clear()
-            st.rerun()
+    st.markdown("<div class='header-controls'>", unsafe_allow_html=True)
+    
+    lang_options = ['🇬🇧 EN', '🇫🇷 FR', '🇩🇿 AR']
+    current_lang_val = f"{'🇬🇧' if st.session_state.lang == 'EN' else '🇫🇷' if st.session_state.lang == 'FR' else '🇩🇿'} {st.session_state.lang}"
+    lang_idx = lang_options.index(current_lang_val) if current_lang_val in lang_options else 0
+    
+    lang = st.selectbox("Lang", lang_options, index=lang_idx, key='lang_select', label_visibility="collapsed")
+    new_lang = lang.split(' ')[1]
+    if new_lang != st.session_state.lang:
+        st.session_state.lang = new_lang
+        st.rerun()
+        
+    theme_options = ['☀️ Light', '🌙 Dark']
+    current_theme_val = f"{'☀️' if st.session_state.theme == 'Light' else '🌙'} {st.session_state.theme}"
+    theme_idx = theme_options.index(current_theme_val) if current_theme_val in theme_options else 0
+    
+    theme = st.selectbox("Theme", theme_options, index=theme_idx, key='theme_select', label_visibility="collapsed")
+    new_theme = theme.split(' ')[1]
+    if new_theme != st.session_state.theme:
+        st.session_state.theme = new_theme
+        st.rerun()
+        
+    if st.button("⏻ Logout", key="logout_btn"):
+        st.session_state.clear()
+        st.query_params.clear()
+        st.rerun()
+
+    st.markdown("</div>", unsafe_allow_html=True)
 
 st.markdown("</div>", unsafe_allow_html=True)
 
