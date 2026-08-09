@@ -3,6 +3,7 @@ import sys
 import os
 import sqlite3
 import pandas as pd
+import base64
 from datetime import date, datetime
 
 sys.path.append(os.path.abspath("core"))
@@ -16,6 +17,13 @@ from tools import lift_crane_tool
 from tools import dispatch_tool
 from tools import leader_portal
 from tools import driver_portal
+
+# --- HELPER: Convert local image to Base64 for HTML rendering ---
+def img_to_bytes(img_path):
+    if os.path.exists(img_path):
+        with open(img_path, "rb") as image_file:
+            return base64.b64encode(image_file.read()).decode()
+    return ""
 
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="ATLCOM Management", page_icon="altecom.png", layout="wide", initial_sidebar_state="collapsed")
@@ -159,7 +167,7 @@ def get_css():
         
         /* Header Right Side Controls (Flexbox to prevent wrapping) */
         .header-controls {{ display: flex !important; align-items: center !important; gap: 12px !important; justify-content: flex-end !important; }}
-        .header-controls > div {{ min-width: auto !important; width: auto !important; }}
+        .header-controls > div {{ min-width: auto !important; width: auto !important; flex: 0 0 auto !important; }}
         .header-controls [data-testid="stSelectbox"] > div > div {{ min-width: 110px !important; padding: 8px 12px !important; border-radius: 10px !important; border: 1px solid {glass_border} !important; background: {input_bg} !important; }}
         .header-controls button {{ white-space: nowrap !important; padding: 8px 16px !important; border-radius: 10px !important; border: 1px solid #dc3545 !important; background: rgba(220, 53, 69, 0.1) !important; color: #dc3545 !important; font-weight: 600 !important; box-shadow: none !important; }}
         .header-controls button:hover {{ background: #dc3545 !important; color: white !important; border-color: transparent !important; }}
@@ -246,7 +254,7 @@ def get_css():
         
         @media only screen and (max-width: 768px) {{
             .top-header {{ flex-direction: column; gap: 10px; padding: 10px; }}
-            .header-controls {{ width: 100% !important; justify-content: center !important; }}
+            .header-controls {{ width: 100% !important; justify-content: center !important; flex-wrap: wrap !important; }}
             .block-container {{ padding-top: 14rem !important; padding-left: 1rem !important; padding-right: 1rem !important; max-width: 100% !important; }}
             [data-testid="stHorizontalBlock"] {{ flex-direction: column !important; width: 100% !important; align-items: center !important; gap: 10px !important; }}
             .login-card {{ margin-top: 2vh !important; padding: 30px 20px !important; }}
@@ -294,7 +302,8 @@ elif not st.session_state.get('manager_logged_in'):
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.markdown("<div class='login-card'>", unsafe_allow_html=True)
-        st.markdown("<div class='login-icon-wrapper'><img src='altecom.png' alt='logo'></div>", unsafe_allow_html=True)
+        logo_base64 = img_to_bytes('altecom.png')
+        st.markdown(f"<div class='login-icon-wrapper'><img src='data:image/png;base64,{logo_base64}' alt='logo'></div>", unsafe_allow_html=True)
         st.markdown("<h1 style='font-weight: 800; margin-bottom: 5px;'>ATLCOM</h1>", unsafe_allow_html=True)
         st.markdown("<p style='opacity: 0.7; margin-bottom: 30px;'>Management Portal</p>", unsafe_allow_html=True)
         
@@ -361,7 +370,8 @@ st.markdown("<div class='top-header'>", unsafe_allow_html=True)
 col1, col2, col3 = st.columns([1.2, 3, 2.5])
 
 with col1:
-    st.markdown("<div class='header-logo'><img src='altecom.png' alt='logo'> ATLCOM</div>", unsafe_allow_html=True)
+    logo_base64 = img_to_bytes('altecom.png')
+    st.markdown(f"<div class='header-logo'><img src='data:image/png;base64,{logo_base64}' alt='logo'> ATLCOM</div>", unsafe_allow_html=True)
 
 with col2:
     main_menu = st.radio("Menu", [t['menu_dashboard'], t['menu_dispatch'], t['menu_materials'], t['menu_tools']], horizontal=True, label_visibility="collapsed", key="top_nav")
