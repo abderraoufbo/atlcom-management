@@ -3,7 +3,7 @@ import psycopg2
 import streamlit as st
 
 @st.cache_resource
-def get_connection():
+def get_cached_connection():
     try:
         db_url = st.secrets["database"]["url"]
     except:
@@ -24,9 +24,16 @@ def get_connection():
     conn.autocommit = True
     return conn
 
+def get_connection():
+    conn = get_cached_connection()
+    # If the connection was closed by Supabase, clear cache and get a new one
+    if conn.closed:
+        st.cache_resource.clear()
+        conn = get_cached_connection()
+    return conn
+
 def release_connection(conn):
     # Do NOT close the cached connection! Just pass.
-    # This keeps the single connection alive forever for all threads.
     pass
 
 @st.cache_resource
@@ -87,6 +94,7 @@ def init_db():
         task_type TEXT,
         leader_id TEXT,
         team_name TEXT,
+        code_site TEXT,
         lat REAL,
         lon REAL,
         notes TEXT,
@@ -97,9 +105,6 @@ def init_db():
         completion_photo_base64 TEXT,
         completed_at TIMESTAMP
     )''')
-
-        # Add Code Site column to tasks table if it doesn't exist
-    c.execute('''ALTER TABLE tasks ADD COLUMN IF NOT EXISTS code_site TEXT''')
 
     c.close()
     print("Supabase PostgreSQL initialized successfully with Keepalives!")
