@@ -215,9 +215,9 @@ def get_css():
         div[data-testid="stDataFrame"] div, div[data-testid="stTable"] div {{ color: {text_color} !important; }}
         
         /* ==========================================
-           ULTRA PREMIUM LOGIN UI
+           ULTRA PREMIUM LOGIN UI (FIXED SCROLL & TEXT)
            ========================================== */
-                .login-container {{ display: flex; justify-content: center; align-items: center; min-height: calc(100vh - 80px); margin-top: -2rem; padding: 10px; }}
+        .login-container {{ display: flex; justify-content: center; padding-top: 5vh; padding-bottom: 2rem; }}
         .login-card {{ 
             background: {login_bg} !important; 
             backdrop-filter: blur(24px) saturate(180%) !important; 
@@ -265,13 +265,20 @@ def get_css():
         .login-card [data-testid="stRadio"] > div > label > div:first-child {{ display: none !important; }}
         .login-card [data-testid="stRadio"] > div > label > div:last-child {{ width: 100% !important; font-size: 15px !important; font-weight: 700 !important; }}
         
-        /* Login Inputs */
+        /* Login Inputs (FIXED TEXT VISIBILITY) */
         .login-card .stTextInput > div > div {{
             background: {login_input_bg} !important;
             border: 1px solid {glass_border} !important;
             border-radius: 12px !important;
             padding: 10px 15px !important;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05) !important;
+        }}
+        .login-card .stTextInput > div > div input {{
+            color: {text_color} !important; /* Forces typed text to be visible */
+        }}
+        .login-card .stTextInput > div > div input::placeholder {{
+            color: {card_title_color} !important; /* Makes placeholder visible */
+            opacity: 0.8 !important;
         }}
         .login-card .stTextInput > div > div:focus-within {{
             border-color: #4facfe !important;
@@ -292,7 +299,6 @@ def get_css():
         }}
         
         @media only screen and (max-width: 768px) {{
-            .login-container {{ min-height: calc(100vh - 100px); margin-top: 0; padding-top: 0 !important; }}
             .block-container {{ padding-top: 4rem !important; padding-left: 1rem !important; padding-right: 1rem !important; max-width: 100% !important; }}
             [data-testid="stHorizontalBlock"] {{ flex-direction: column !important; width: 100% !important; align-items: center !important; gap: 10px !important; }}
             [data-testid="stHorizontalBlock"] > div {{ width: 100% !important; }}
@@ -308,6 +314,7 @@ def get_css():
             .stTabs [data-baseweb="tab"] {{ padding: 8px 12px; font-size: 14px; white-space: nowrap; }}
             
             /* Mobile Login Adjustments */
+            .login-container {{ padding-top: 2vh !important; }}
             .login-card {{ padding: 30px 20px !important; }}
             .login-card [data-testid="stRadio"] > div {{ flex-direction: column !important; }}
         }}
