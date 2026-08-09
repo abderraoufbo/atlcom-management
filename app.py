@@ -18,53 +18,47 @@ from tools import leader_portal
 from tools import driver_portal
 
 # --- PAGE CONFIG ---
-st.set_page_config(page_title="ATLCOM Management", page_icon="favicon.ico", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="ATLCOM Management", page_icon="favicon.ico", layout="wide", initial_sidebar_state="collapsed")
 
 # --- COMPREHENSIVE TRANSLATIONS DICTIONARY ---
 translations = {
     'EN': {
-        'title': "ATLCOM Management", 'settings': "Settings", 'language': "Language", 'theme': "Theme",
-        'main_menu': "Main Menu", 'menu_dashboard': "🏠 Dashboard", 'menu_dispatch': "📡 Dispatch & Tracker",
-        'menu_materials': "📦 Material Managers", 'menu_tools': "🛠️ Tools",
+        'title': "ATLCOM", 'settings': "Settings", 'language': "Language", 'theme': "Theme",
+        'menu_dashboard': "🏠 Dashboard", 'menu_dispatch': "📡 Dispatch", 'menu_materials': "📦 Materials", 'menu_tools': "🛠️ Tools",
         'welcome': "Welcome to your centralized project management workspace.",
         'active_clients': "Active Clients", 'total_inventory': "Total Inventory Items", 'total_teams': "Total Teams",
         'team_status': "Team Live Status", 'working_teams': "Working Teams", 'available_teams': "Available Teams", 'resting_teams': "Resting Teams",
         'select_client': "1. Select Client", 'select_tool': "2. Select Tool", 'client_label': "Client",
-        'choose_db': "Choose Database:", 'tab_mob': "📦 Mobilis (ATM)", 'tab_ota': "📦 Djezzy (OTA)",
-        'tab_oa': "📦 Ooredoo (OA)", 'tab_lc': "🏗️ Lift & Crane",
+        'tab_mob': "Mobilis (ATM)", 'tab_ota': "Djezzy (OTA)", 'tab_oa': "Ooredoo (OA)", 'tab_lc': "Lift & Crane",
         'add_new': "➕ Add New Material", 'add_new_item': "➕ Add New Item", 'part_number': "Part Number",
         'mat_name': "Material Name *", 'nature': "Nature", 'submit': "Submit", 'designation': "Désignation *",
         'pn': "PN", 'oa_info': "OA list builds itself automatically in the OA Return Tool!",
         'item_code': "Item Code", 'item_name': "Item Name *", 'item_by': "Item By (Unit)",
     },
     'FR': {
-        'title': "Gestion ATLCOM", 'settings': "Paramètres", 'language': "Langue", 'theme': "Thème",
-        'main_menu': "Menu Principal", 'menu_dashboard': "🏠 Tableau de bord", 'menu_dispatch': "📡 Dispatch & Suivi",
-        'menu_materials': "📦 Gestion du Matériel", 'menu_tools': "🛠️ Outils",
+        'title': "ATLCOM", 'settings': "Paramètres", 'language': "Langue", 'theme': "Thème",
+        'menu_dashboard': "🏠 Tableau de bord", 'menu_dispatch': "📡 Dispatch", 'menu_materials': "📦 Matériel", 'menu_tools': "🛠️ Outils",
         'welcome': "Bienvenue dans votre espace de gestion de projet centralisé.",
-        'active_clients': "Clients Actifs", 'total_inventory': "Total des Articles en Stock", 'total_teams': "Nombre Total d'Équipes",
-        'team_status': "Statut en Direct des Équipes", 'working_teams': "Équipes en Travail", 'available_teams': "Équipes Disponibles", 'resting_teams': "Équipes en Repos",
+        'active_clients': "Clients Actifs", 'total_inventory': "Total des Articles", 'total_teams': "Nombre d'Équipes",
+        'team_status': "Statut des Équipes", 'working_teams': "En Travail", 'available_teams': "Disponibles", 'resting_teams': "En Repos",
         'select_client': "1. Sélectionner Client", 'select_tool': "2. Sélectionner Outil", 'client_label': "Client",
-        'choose_db': "Choisir la Base de Données :", 'tab_mob': "📦 Mobilis (ATM)", 'tab_ota': "📦 Djezzy (OTA)",
-        'tab_oa': "📦 Ooredoo (OA)", 'tab_lc': "🏗️ Levage & Grue",
-        'add_new': "➕ Ajouter Nouveau Matériel", 'add_new_item': "➕ Ajouter Nouvel Article", 'part_number': "Numéro de Pièce",
+        'tab_mob': "Mobilis (ATM)", 'tab_ota': "Djezzy (OTA)", 'tab_oa': "Ooredoo (OA)", 'tab_lc': "Levage & Grue",
+        'add_new': "➕ Ajouter Matériel", 'add_new_item': "➕ Ajouter Article", 'part_number': "Numéro de Pièce",
         'mat_name': "Nom du Matériel *", 'nature': "Nature", 'submit': "Valider", 'designation': "Désignation *",
         'pn': "PN", 'oa_info': "La liste OA se construit automatiquement dans l'outil de retour OA !",
         'item_code': "Code Article", 'item_name': "Nom de l'Article *", 'item_by': "Unité",
     },
     'AR': {
-        'title': "إدارة ATLCOM", 'settings': "الإعدادات", 'language': "اللغة", 'theme': "المظهر",
-        'main_menu': "القائمة الرئيسية", 'menu_dashboard': "🏠 لوحة التحكم", 'menu_dispatch': "📡 توزيع الفرق والتتبع",
-        'menu_materials': "📦 إدارة المواد", 'menu_tools': "🛠️ الأدوات",
+        'title': "ATLCOM", 'settings': "إعدادات", 'language': "اللغة", 'theme': "المظهر",
+        'menu_dashboard': "🏠 لوحة التحكم", 'menu_dispatch': "📡 التتبع", 'menu_materials': "📦 المواد", 'menu_tools': "🛠️ الأدوات",
         'welcome': "مرحباً بك في مساحة عمل إدارة المشاريع المركزية.",
-        'active_clients': "العملاء النشطون", 'total_inventory': "إجمالي العناصر في المخزون", 'total_teams': "إجمالي الفرق",
-        'team_status': "حالة الفرق المباشرة", 'working_teams': "الفرق العاملة", 'available_teams': "الفرق المتاحة", 'resting_teams': "الفرق في راحة",
+        'active_clients': "العملاء النشطون", 'total_inventory': "إجمالي العناصر", 'total_teams': "إجمالي الفرق",
+        'team_status': "حالة الفرق", 'working_teams': "عاملة", 'available_teams': "متاحة", 'resting_teams': "في راحة",
         'select_client': "1. اختر العميل", 'select_tool': "2. اختر الأداة", 'client_label': "العميل",
-        'choose_db': "اختر قاعدة البيانات:", 'tab_mob': "📦 موبيليس (ATM)", 'tab_ota': "📦 جازي (OTA)",
-        'tab_oa': "📦 أوريدو (OA)", 'tab_lc': "🏗️ الرافعات والونش",
-        'add_new': "➕ إضافة مادة جديدة", 'add_new_item': "➕ إضافة عنصر جديد", 'part_number': "رقم القطعة",
+        'tab_mob': "موبيليس (ATM)", 'tab_ota': "جازي (OTA)", 'tab_oa': "أوريدو (OA)", 'tab_lc': "الرافعات والونش",
+        'add_new': "➕ إضافة مادة", 'add_new_item': "➕ إضافة عنصر", 'part_number': "رقم القطعة",
         'mat_name': "اسم المادة *", 'nature': "الطبيعة", 'submit': "تأكيد", 'designation': "التسمية *",
-        'pn': "الرقم التعريفي (PN)", 'oa_info': "تُبنى قائمة OA تلقائياً في أداة إرجاع OA!",
+        'pn': "PN", 'oa_info': "تُبنى قائمة OA تلقائياً في أداة إرجاع OA!",
         'item_code': "رمز العنصر", 'item_name': "اسم العنصر *", 'item_by': "الوحدة",
     }
 }
@@ -75,31 +69,31 @@ if 'theme' not in st.session_state: st.session_state.theme = 'Light'
 
 t = translations[st.session_state.lang]
 
-# --- DYNAMIC CSS (ENTERPRISE SaaS UI/UX) ---
+# --- DYNAMIC CSS (ULTRA PREMIUM GLASSMORPHISM & TOP HEADER) ---
 def get_css():
     is_dark = st.session_state.theme == 'Dark'
     is_ar = st.session_state.lang == 'AR'
     
     if is_dark:
-        bg_color = "#0f172a"
-        sidebar_bg = "#1e293b"
-        card_bg = "#1e293b"
+        body_bg = "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)"
+        glass_bg = "rgba(30, 41, 59, 0.6)"
+        glass_border = "rgba(255, 255, 255, 0.1)"
         text_color = "#f1f5f9"
-        subtext_color = "#94a3b8"
-        border_color = "#334155"
-        input_bg = "#0f172a"
-        primary_color = "#3b82f6"
-        primary_hover = "#2563eb"
+        card_title_color = "#94a3b8"
+        input_bg = "rgba(15, 23, 42, 0.5)"
+        df_bg = "rgba(15, 23, 42, 0.8)"
+        login_bg = "rgba(30, 41, 59, 0.45)"
+        login_input_bg = "rgba(15, 23, 42, 0.6)"
     else:
-        bg_color = "#f8fafc"
-        sidebar_bg = "#ffffff"
-        card_bg = "#ffffff"
-        text_color = "#0f172a"
-        subtext_color = "#64748b"
-        border_color = "#e2e8f0"
-        input_bg = "#f8fafc"
-        primary_color = "#2563eb"
-        primary_hover = "#1d4ed8"
+        body_bg = "linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%)"
+        glass_bg = "rgba(255, 255, 255, 0.65)"
+        glass_border = "rgba(255, 255, 255, 0.9)"
+        text_color = "#1e293b"
+        card_title_color = "#64748b"
+        input_bg = "rgba(255, 255, 255, 0.5)"
+        df_bg = "rgba(255, 255, 255, 0.8)"
+        login_bg = "rgba(255, 255, 255, 0.45)"
+        login_input_bg = "rgba(255, 255, 255, 0.6)"
         
     direction = "rtl" if is_ar else "ltr"
     text_align = "right" if is_ar else "left"
@@ -110,8 +104,8 @@ def get_css():
         
         ::-webkit-scrollbar {{ width: 8px; height: 8px; }}
         ::-webkit-scrollbar-track {{ background: transparent; }}
-        ::-webkit-scrollbar-thumb {{ background: {border_color}; border-radius: 10px; }}
-        ::-webkit-scrollbar-thumb:hover {{ background: {subtext_color}; }}
+        ::-webkit-scrollbar-thumb {{ background: #0078D7; border-radius: 10px; }}
+        ::-webkit-scrollbar-thumb:hover {{ background: #0056b3; }}
 
         html, body, [class*="css"] {{
             font-family: 'Inter', sans-serif;
@@ -119,183 +113,134 @@ def get_css():
             text-align: {text_align};
         }}
         .stApp {{
-            background-color: {bg_color} !important;
+            background: {body_bg} !important;
             color: {text_color} !important;
         }}
+        
+        /* Completely Hide Default Streamlit Sidebar & Buttons */
+        section[data-testid="stSidebar"], [data-testid="stSidebarCollapseButton"], #MainMenu, footer {{ display: none !important; }}
+        
+        /* Typography */
+        .stApp p, .stApp span, .stApp label, .stApp li, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6 {{ color: {text_color} !important; }}
+        .block-container {{ padding-top: 6rem !important; padding-bottom: 3rem; max-width: 1200px; margin: 0 auto; }}
         
         /* ==========================================
-           ENTERPRISE HEADER & SIDEBAR BUTTON FIX
+           PREMIUM GLASS TOP HEADER
            ========================================== */
-        header[data-testid="stHeader"] {{
-            background-color: transparent !important;
+        .top-header {{
+            position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+            background: {glass_bg} !important;
+            backdrop-filter: blur(16px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+            border-bottom: 1px solid {glass_border} !important;
+            padding: 10px 20px;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05) !important;
         }}
-        /* Hide ONLY the ugly menu/share buttons */
-        #MainMenu, footer {{ visibility: hidden !important; }}
-        /* FORCE the sidebar toggle button to stay visible */
-        [data-testid="stSidebarCollapseButton"], button[kind="header"] {{
-            display: flex !important; visibility: visible !important; opacity: 1 !important; 
-            z-index: 999999 !important; position: fixed !important; top: 15px !important; right: 15px !important;
-            background-color: {card_bg} !important; border: 1px solid {border_color} !important;
-            color: {text_color} !important; border-radius: 8px !important; padding: 8px !important;
-        }}
+        .header-logo {{ font-size: 20px; font-weight: 800; color: #0078D7; display: flex; align-items: center; gap: 10px; }}
         
-        section[data-testid="stSidebar"] {{
-            background-color: {sidebar_bg} !important;
-            border-right: 1px solid {border_color} !important;
-            border-left: 1px solid {border_color} !important;
-        }}
-        
-        /* Enterprise Sidebar Navigation */
-        [data-testid="stSidebar"] div[role="radiogroup"] {{ gap: 8px; display: flex; flex-direction: column; width: 100%; }}
-        [data-testid="stSidebar"] div[role="radiogroup"] > label {{
-            background: transparent !important;
-            border: 1px solid transparent !important;
-            padding: 12px 16px !important;
-            border-radius: 8px !important;
-            transition: all 0.2s ease !important;
-            display: flex !important; align-items: center !important; cursor: pointer !important;
+        /* Navigation Pills inside Header */
+        .top-header [data-testid="stRadio"] > div {{ flex-direction: row !important; display: flex !important; gap: 8px !important; background: transparent !important; }}
+        .top-header [data-testid="stRadio"] > div > label {{
+            background: {input_bg} !important; border: 1px solid {glass_border} !important;
+            padding: 8px 16px !important; border-radius: 10px !important;
+            transition: all 0.2s ease !important; cursor: pointer !important;
             font-weight: 500 !important;
         }}
-        [data-testid="stSidebar"] div[role="radiogroup"] > label:hover {{
-            background-color: {input_bg} !important;
+        .top-header [data-testid="stRadio"] > div > label:hover {{ background: {glass_bg} !important; }}
+        .top-header [data-testid="stRadio"] > div > label[data-checked="true"] {{
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%) !important;
+            color: white !important; border-color: transparent !important;
+            box-shadow: 0 4px 12px rgba(79, 172, 254, 0.3) !important;
         }}
-        [data-testid="stSidebar"] div[role="radiogroup"] [aria-checked="true"] {{
-            background-color: {input_bg} !important;
-            border-color: {primary_color} !important;
-            box-shadow: 0 0 0 1px {primary_color} inset !important;
-        }}
-        [data-testid="stSidebar"] div[role="radiogroup"] [aria-checked="true"] > div,
-        [data-testid="stSidebar"] div[role="radiogroup"] [aria-checked="true"] > div > div {{
-            color: {primary_color} !important; font-weight: 600 !important;
-        }}
-        [data-testid="stSidebar"] div[role="radiogroup"] > label > div:first-child {{ display: none !important; }}
-        [data-testid="stSidebar"] div[role="radiogroup"] > label > div:last-child {{ width: 100% !important; }}
+        .top-header [data-testid="stRadio"] > div > label > div:first-child {{ display: none !important; }}
+        .top-header [data-testid="stRadio"] > div > label > div:last-child {{ width: 100% !important; font-size: 14px !important; font-weight: 600 !important; text-align: center !important; }}
         
-        /* Typography & Layout */
-        .stApp p, .stApp span, .stApp label, .stApp li, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6 {{ color: {text_color} !important; }}
-        .stRadio > div > label, .stSelectbox > div > div > div {{ color: {text_color} !important; }}
-        .block-container {{ padding-top: 3rem; padding-bottom: 3rem; max-width: 1200px; margin: 0 auto; }}
-        
-        /* Enterprise Buttons */
+        /* Buttons */
         .stButton > button, .stFormSubmitButton > button {{
-            color: #ffffff !important;
-            background-color: {primary_color} !important;
+            color: #ffffff !important; background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%) !important;
             border: none !important; border-radius: 8px !important; font-weight: 600 !important;
-            transition: all 0.2s ease !important; box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
-            padding: 10px 20px !important;
+            transition: all 0.3s ease !important; box-shadow: 0 4px 6px rgba(79, 172, 254, 0.2) !important;
         }}
         .stButton > button:hover, .stFormSubmitButton > button:hover {{
-            background-color: {primary_hover} !important;
-            border: none !important;
+            transform: translateY(-2px) !important; box-shadow: 0 6px 12px rgba(79, 172, 254, 0.4) !important;
         }}
         
-        /* Enterprise Cards (Clean, Solid, Subtle Shadow) */
+        /* Dashboard Cards */
         div.card {{
-            background-color: {card_bg} !important;
-            padding: 24px !important;
-            border-radius: 12px !important;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03) !important;
-            border: 1px solid {border_color} !important;
-            margin-bottom: 16px !important;
-            transition: box-shadow 0.2s ease, transform 0.2s ease;
+            background-color: {glass_bg} !important; backdrop-filter: blur(12px) !important;
+            -webkit-backdrop-filter: blur(12px) !important; padding: 25px; border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important; border: 1px solid {glass_border} !important;
+            margin-bottom: 15px; border-left: 4px solid #4facfe !important;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }}
-        div.card:hover {{
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03) !important;
-        }}
-        .card-title {{ font-size: 14px; color: {subtext_color}; font-weight: 500; margin-bottom: 8px; }}
-        .card-value {{ font-size: 28px; font-weight: 700; color: {text_color}; }}
+        div.card:hover {{ transform: translateY(-5px); box-shadow: 0 12px 40px rgba(79, 172, 254, 0.2) !important; }}
+        .card-title {{ font-size: 14px; color: {card_title_color}; font-weight: 500; margin-bottom: 5px; }}
+        .card-value {{ font-size: 32px; font-weight: 800; color: {text_color}; }}
         
-        /* Open Tasks Button styled as Enterprise Card */
+        /* Open Tasks Button styled as Glass Card */
         button[k="open_tasks_btn"] {{
-            background-color: {card_bg} !important;
-            border: 1px solid {border_color} !important;
-            border-left: 4px solid #ef4444 !important;
-            border-radius: 12px !important;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
-            color: {text_color} !important;
-            height: 100% !important; min-height: 110px !important;
-            display: flex !important; flex-direction: column !important; justify-content: center !important;
-            align-items: flex-start !important; text-align: left !important;
-            font-weight: 600 !important; transition: all 0.2s ease !important; margin-bottom: 16px !important;
+            background-color: {glass_bg} !important; backdrop-filter: blur(12px) !important;
+            -webkit-backdrop-filter: blur(12px) !important; border: 1px solid {glass_border} !important;
+            border-left: 4px solid #dc3545 !important; border-radius: 16px !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important; color: {text_color} !important;
+            height: 100% !important; min-height: 110px !important; display: flex !important;
+            flex-direction: column !important; justify-content: center !important; align-items: flex-start !important;
+            text-align: left !important; font-weight: 700 !important; transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+            margin-bottom: 15px !important;
         }}
-        button[k="open_tasks_btn"]:hover {{
-            transform: translateY(-2px) !important;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05) !important;
-            background-color: {card_bg} !important;
-        }}
+        button[k="open_tasks_btn"]:hover {{ transform: translateY(-5px) !important; box-shadow: 0 12px 40px rgba(220, 53, 69, 0.2) !important; background: {glass_bg} !important; }}
         
-        .hero-banner {{ background-color: {primary_color} !important; color: #ffffff !important; padding: 32px; border-radius: 12px; margin-bottom: 24px; }}
-        .hero-banner h2, .hero-banner p {{ color: #ffffff !important; margin: 0; }}
-        .tool-banner {{ background-color: {primary_color} !important; color: #ffffff !important; padding: 20px 24px; border-radius: 10px; margin-bottom: 20px; }}
-        .tool-banner h3, .tool-banner p {{ color: #ffffff !important; }}
-        
-        .stTabs [data-baseweb="tab-list"] {{ gap: 8px; background-color: transparent !important; padding: 0 !important; border-bottom: 1px solid {border_color}; border-radius: 0 !important; }}
-        .stTabs [data-baseweb="tab"] {{ background-color: transparent !important; border-radius: 0 !important; color: {subtext_color} !important; border: none !important; border-bottom: 2px solid transparent !important; font-weight: 500 !important; padding: 12px 16px !important; }}
-        .stTabs [aria-selected="true"] {{ background-color: transparent !important; color: {primary_color} !important; border-bottom: 2px solid {primary_color} !important; }}
-        
-        /* Enterprise Inputs (High Contrast Text) */
+        /* Inputs & DataFrames (Flawless Text Visibility) */
         .stTextInput > div > div, .stSelectbox > div > div > div {{
-            background-color: {input_bg} !important; border: 1px solid {border_color} !important; border-radius: 8px; color: {text_color} !important;
+            background-color: {input_bg} !important; backdrop-filter: blur(4px) !important;
+            border: 1px solid {glass_border} !important; border-radius: 8px !important;
         }}
-        .stTextInput > div > div input {{ color: {text_color} !important; }}
-        .stTextInput > div > div input::placeholder {{ color: {subtext_color} !important; opacity: 1 !important; }}
-        .stTextInput > div > div:focus-within, .stSelectbox > div > div > div:focus-within {{
-            border-color: {primary_color} !important; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
-        }}
-        
-        .stDataFrame {{ background-color: {card_bg} !important; border: 1px solid {border_color} !important; border-radius: 8px !important; padding: 0 !important; overflow: hidden; }}
+        .stTextInput > div > div input, .stSelectbox > div > div > div {{ color: {text_color} !important; }}
+        .stTextInput > div > div input::placeholder {{ color: {card_title_color} !important; opacity: 0.8 !important; }}
+        .stTextInput > div > div:focus-within, .stSelectbox > div > div > div:focus-within {{ border-color: #4facfe !important; box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.2) !important; }}
+        .stDataFrame {{ background-color: {df_bg} !important; backdrop-filter: blur(8px) !important; border: 1px solid {glass_border} !important; border-radius: 12px !important; padding: 10px !important; }}
         div[data-testid="stDataFrame"] div, div[data-testid="stTable"] div {{ color: {text_color} !important; }}
         
         /* ==========================================
-           ENTERPRISE LOGIN PAGE
+           ULTRA PREMIUM LOGIN UI (NO SCROLL, PERFECT CENTER)
            ========================================== */
-        .login-container {{ display: flex; justify-content: center; align-items: center; min-height: calc(100vh - 60px); padding: 20px; }}
+        .login-container {{ position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; align-items: center; background: {body_bg}; z-index: 99999; }}
         .login-card {{ 
-            background-color: {card_bg} !important;
-            padding: 40px !important;
-            border-radius: 16px !important;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.01), 0 0 0 1px {border_color} inset !important;
-            border: none !important;
-            width: 100% !important; max-width: 400px !important;
-            text-align: center !important;
-            display: flex !important; flex-direction: column !important; align-items: center !important;
+            background: {login_bg} !important; backdrop-filter: blur(24px) saturate(180%) !important; 
+            -webkit-backdrop-filter: blur(24px) saturate(180%) !important; padding: 50px 40px !important; 
+            border-radius: 28px !important; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 0 0 1px {glass_border} inset !important; 
+            width: 100% !important; max-width: 440px !important; text-align: center !important;
+            display: flex !important; flex-direction: column !important; align-items: center !important; border: none !important;
         }}
-        .login-icon-wrapper {{
-            width: 60px; height: 60px; background-color: {primary_color};
-            border-radius: 12px; margin: 0 auto 20px auto; display: flex; align-items: center; justify-content: center;
-            color: white; font-size: 28px;
-        }}
+        .login-icon-wrapper {{ width: 90px; height: 90px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); border-radius: 28px; margin: 0 auto 25px auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(79, 172, 254, 0.4); }}
+        .login-icon {{ font-size: 45px; }}
         
-        .login-card [data-testid="stRadio"] > div {{ flex-direction: row !important; display: flex !important; gap: 8px !important; background: {input_bg} !important; padding: 4px !important; border-radius: 8px !important; width: 100% !important; border: 1px solid {border_color} !important; }}
+        .login-card [data-testid="stRadio"] > div {{ flex-direction: row !important; display: flex !important; gap: 12px !important; background: transparent !important; width: 100% !important; }}
         .login-card [data-testid="stRadio"] > div > label {{
-            background: transparent !important; border: none !important; padding: 10px !important;
-            border-radius: 6px !important; flex: 1 !important; text-align: center !important; cursor: pointer !important;
-            transition: all 0.2s ease !important; font-size: 14px !important; font-weight: 500 !important; color: {subtext_color} !important;
+            background: {login_input_bg} !important; border: 1px solid {glass_border} !important; padding: 15px 10px !important;
+            border-radius: 14px !important; flex: 1 !important; text-align: center !important; cursor: pointer !important;
+            transition: all 0.3s ease !important; display: flex !important; justify-content: center !important; align-items: center !important; backdrop-filter: blur(4px) !important;
         }}
-        .login-card [data-testid="stRadio"] > div > label:hover {{ background: transparent !important; color: {text_color} !important; }}
-        .login-card [data-testid="stRadio"] > div > label[data-checked="true"] {{
-            background-color: {card_bg} !important; color: {primary_color} !important;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
-        }}
+        .login-card [data-testid="stRadio"] > div > label:hover {{ background: {glass_bg} !important; transform: translateY(-2px) !important; }}
+        .login-card [data-testid="stRadio"] > div > label[data-checked="true"] {{ background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important; color: white !important; border-color: transparent !important; box-shadow: 0 6px 18px rgba(79, 172, 254, 0.35) !important; }}
         .login-card [data-testid="stRadio"] > div > label > div:first-child {{ display: none !important; }}
-        .login-card [data-testid="stRadio"] > div > label > div:last-child {{ width: 100% !important; font-size: 14px !important; font-weight: 600 !important; }}
+        .login-card [data-testid="stRadio"] > div > label > div:last-child {{ width: 100% !important; font-size: 15px !important; font-weight: 700 !important; }}
         
-        .login-card .stTextInput > div > div {{
-            background-color: {input_bg} !important; border: 1px solid {border_color} !important; border-radius: 8px !important; padding: 8px 12px !important;
-        }}
-        .login-card .stButton {{ width: 100%; display: flex; justify-content: center; margin-top: 8px; }}
-        .login-card .stButton > button {{
-            background-color: {primary_color} !important; border: none !important; padding: 12px 0 !important; border-radius: 8px !important;
-            font-size: 15px !important; font-weight: 600 !important; box-shadow: none !important;
-        }}
+        .login-card .stTextInput > div > div {{ background: {login_input_bg} !important; border: 1px solid {glass_border} !important; border-radius: 12px !important; padding: 10px 15px !important; box-shadow: 0 2px 10px rgba(0,0,0,0.05) !important; }}
+        .login-card .stTextInput > div > div input {{ color: {text_color} !important; }}
+        .login-card .stTextInput > div > div input::placeholder {{ color: {card_title_color} !important; opacity: 0.8 !important; }}
+        .login-card .stTextInput > div > div:focus-within {{ border-color: #4facfe !important; box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.2) !important; }}
+        
+        .login-card .stButton {{ width: 100%; display: flex; justify-content: center; margin-top: 10px; }}
+        .login-card .stButton > button {{ background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important; border: none !important; padding: 14px 0 !important; border-radius: 12px !important; font-size: 16px !important; font-weight: 700 !important; box-shadow: 0 8px 20px rgba(79, 172, 254, 0.3) !important; }}
+        .login-card .stButton > button:hover {{ transform: translateY(-3px) !important; box-shadow: 0 12px 28px rgba(79, 172, 254, 0.45) !important; }}
         
         @media only screen and (max-width: 768px) {{
-            .block-container {{ padding-top: 4rem !important; padding-left: 1rem !important; padding-right: 1rem !important; max-width: 100% !important; }}
+            .top-header {{ flex-direction: column; gap: 10px; padding: 10px; }}
+            .block-container {{ padding-top: 12rem !important; padding-left: 1rem !important; padding-right: 1rem !important; max-width: 100% !important; }}
             [data-testid="stHorizontalBlock"] {{ flex-direction: column !important; width: 100% !important; align-items: center !important; gap: 10px !important; }}
-            [data-testid="stHorizontalBlock"] > div {{ width: 100% !important; }}
-            .login-card [data-testid="stRadio"] > div {{ flex-direction: column !important; background: transparent !important; border: none !important; padding: 0 !important; gap: 12px !important; }}
-            .login-card [data-testid="stRadio"] > div > label {{ background-color: {input_bg} !important; border: 1px solid {border_color} !important; }}
+            .login-card [data-testid="stRadio"] > div {{ flex-direction: column !important; }}
         }}
     </style>
     """
@@ -303,9 +248,6 @@ def get_css():
 st.markdown(get_css(), unsafe_allow_html=True)
 
 init_db()
-
-# Force sidebar to exist so the toggle button shows up on the login screen
-st.sidebar.markdown("")
 
 # --- UNIFIED SESSION INIT FROM URL ---
 def init_session():
@@ -338,11 +280,11 @@ elif st.session_state.get('role') == 'driver':
     driver_portal.render_portal()
     st.stop()
 elif not st.session_state.get('manager_logged_in'):
-    # --- ENTERPRISE LOGIN PAGE ---
+    # --- ULTRA PREMIUM LOGIN PAGE ---
     st.markdown("<div class='login-container'><div class='login-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='login-icon-wrapper'>🛠️</div>", unsafe_allow_html=True)
+    st.markdown("<div class='login-icon-wrapper'><span class='login-icon'>🛠️</span></div>", unsafe_allow_html=True)
     st.markdown("<h1 style='font-weight: 800; margin-bottom: 5px;'>ATLCOM</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='opacity: 0.7; margin-bottom: 24px; font-size: 14px;'>Management Portal</p>", unsafe_allow_html=True)
+    st.markdown("<p style='opacity: 0.7; margin-bottom: 30px;'>Management Portal</p>", unsafe_allow_html=True)
     
     role = st.radio("Select Role", ["Manager", "Team Leader", "Driver"], horizontal=True)
     
@@ -402,43 +344,44 @@ TOOL_HIERARCHY = {
     }
 }
 
-# --- SIDEBAR ---
-st.sidebar.markdown(f"<h1 style='font-size: 20px; font-weight: 700; color: {('#3b82f6' if st.session_state.theme == 'Dark' else '#2563eb')}; margin-bottom: 0; letter-spacing: -0.5px;'>ATLCOM</h1>", unsafe_allow_html=True)
-st.sidebar.markdown(f"<p style='font-size: 12px; color: #64748b; margin-top: 0;'>Management Portal</p>", unsafe_allow_html=True)
-st.sidebar.markdown("<hr style='border: 0; border-top: 1px solid #e2e8f0; margin: 16px 0;'>", unsafe_allow_html=True)
+# --- PREMIUM GLASS TOP HEADER ---
+st.markdown("<div class='top-header'>", unsafe_allow_html=True)
+col1, col2, col3 = st.columns([1, 3, 1])
 
-with st.sidebar.expander(f"⚙️ {t['settings']}"):
-    col_lang, col_theme = st.columns(2)
-    with col_lang:
-        lang = st.selectbox(f"{t['language']}", ['EN', 'FR', 'AR'], key='lang_select')
+with col1:
+    st.markdown("<div class='header-logo'>🛠️ ATLCOM</div>", unsafe_allow_html=True)
+
+with col2:
+    main_menu = st.radio("Menu", [t['menu_dashboard'], t['menu_dispatch'], t['menu_materials'], t['menu_tools']], horizontal=True, label_visibility="collapsed", key="top_nav")
+
+with col3:
+    c_lang, c_theme, c_out = st.columns(3)
+    with c_lang:
+        lang = st.selectbox("Lang", ['EN', 'FR', 'AR'], key='lang_select', label_visibility="collapsed")
         if lang != st.session_state.lang:
             st.session_state.lang = lang
             st.rerun()
-    with col_theme:
-        theme = st.selectbox(f"{t['theme']}", ['Light', 'Dark'], key='theme_select')
+    with c_theme:
+        theme = st.selectbox("Theme", ['Light', 'Dark'], key='theme_select', label_visibility="collapsed")
         if theme != st.session_state.theme:
             st.session_state.theme = theme
             st.rerun()
+    with c_out:
+        if st.button("Logout", key="logout_btn", use_container_width=True):
+            st.session_state.clear()
+            st.query_params.clear()
+            st.rerun()
 
-st.sidebar.markdown("<hr style='border: 0; border-top: 1px solid #e2e8f0; margin: 16px 0;'>", unsafe_allow_html=True)
-
-# Manager Logout Button
-if st.sidebar.button("🚪 Logout", use_container_width=True):
-    st.session_state.clear()
-    st.query_params.clear()
-    st.rerun()
-
-t = translations[st.session_state.lang]
-main_menu = st.sidebar.radio(f"{t['main_menu']}", [t['menu_dashboard'], t['menu_dispatch'], t['menu_materials'], t['menu_tools']])
+st.markdown("</div>", unsafe_allow_html=True)
 
 # ==========================================
 # 1. DASHBOARD
 # ==========================================
 if main_menu == t['menu_dashboard']:
     st.markdown(f"""
-    <div class="hero-banner">
+    <div style="background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%) !important; color: #ffffff !important; padding: 30px; border-radius: 16px; margin-bottom: 25px; box-shadow: 0 8px 20px rgba(79, 172, 254, 0.3);">
         <h2 style="font-weight: 700; margin-bottom: 8px;">{t['menu_dashboard'][2:]} Overview</h2>
-        <p style="font-size: 15px; opacity: 0.9;">{t['welcome']}</p>
+        <p style="font-size: 16px; opacity: 0.9; margin:0;">{t['welcome']}</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -480,22 +423,22 @@ if main_menu == t['menu_dashboard']:
             else: available_teams += 1
 
     # --- TEAM LIVE STATUS ---
-    st.markdown(f"<h3 style='font-weight: 600; margin-bottom: 16px; font-size: 18px;'>📡 {t['team_status']}</h3>", unsafe_allow_html=True)
+    st.markdown(f"<h3 style='font-weight: 600; margin-bottom: 15px;'>📡 {t['team_status']}</h3>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.markdown(f"<div class='card' style='border-left: 4px solid #10b981 !important;'><div class='card-title'>{t['working_teams']}</div><div class='card-value'><span style='margin-right: 8px;'>🛠️</span>{working_teams} <span style='font-size: 16px; color: #94a3b8; font-weight: 500;'>/ {total_teams}</span></div></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='card' style='border-left-color: #28a745 !important;'><div class='card-title'>{t['working_teams']}</div><div class='card-value'><span style='font-size: 28px; margin-right: 10px;'>🛠️</span>{working_teams} <span style='font-size: 18px; color: #6c757d;'>/ {total_teams}</span></div></div>", unsafe_allow_html=True)
     with col2:
-        st.markdown(f"<div class='card' style='border-left: 4px solid #3b82f6 !important;'><div class='card-title'>{t['available_teams']}</div><div class='card-value'><span style='margin-right: 8px;'>✅</span>{available_teams} <span style='font-size: 16px; color: #94a3b8; font-weight: 500;'>/ {total_teams}</span></div></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='card' style='border-left-color: #17a2b8 !important;'><div class='card-title'>{t['available_teams']}</div><div class='card-value'><span style='font-size: 28px; margin-right: 10px;'>✅</span>{available_teams} <span style='font-size: 18px; color: #6c757d;'>/ {total_teams}</span></div></div>", unsafe_allow_html=True)
     with col3:
-        st.markdown(f"<div class='card' style='border-left: 4px solid #f59e0b !important;'><div class='card-title'>{t['resting_teams']}</div><div class='card-value'><span style='margin-right: 8px;'>🛌</span>{resting_teams} <span style='font-size: 16px; color: #94a3b8; font-weight: 500;'>/ {total_teams}</span></div></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='card' style='border-left-color: #ffc107 !important;'><div class='card-title'>{t['resting_teams']}</div><div class='card-value'><span style='font-size: 28px; margin-right: 10px;'>🛌</span>{resting_teams} <span style='font-size: 18px; color: #6c757d;'>/ {total_teams}</span></div></div>", unsafe_allow_html=True)
 
     # --- GENERAL METRICS ---
-    st.markdown(f"<h3 style='margin-top: 32px; font-weight: 600; margin-bottom: 16px; font-size: 18px;'>📊 General Metrics</h3>", unsafe_allow_html=True)
+    st.markdown(f"<h3 style='margin-top: 30px; font-weight: 600; margin-bottom: 15px;'>📊 General Metrics</h3>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.markdown(f"<div class='card' style='border-left: 4px solid #6366f1 !important;'><div class='card-title'>{t['total_inventory']}</div><div class='card-value'><span style='margin-right: 8px;'>📦</span>{total_mats}</div></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='card' style='border-left-color: #00f2fe !important;'><div class='card-title'>{t['total_inventory']}</div><div class='card-value'><span style='font-size: 28px; margin-right: 10px;'>📦</span>{total_mats}</div></div>", unsafe_allow_html=True)
     with col2:
-        st.markdown(f"<div class='card' style='border-left: 4px solid #8b5cf6 !important;'><div class='card-title'>Files Generated</div><div class='card-value'><span style='margin-right: 8px;'>📝</span>{total_docs}</div></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='card' style='border-left-color: #f093fb !important;'><div class='card-title'>Files Generated</div><div class='card-value'><span style='font-size: 28px; margin-right: 10px;'>📝</span>{total_docs}</div></div>", unsafe_allow_html=True)
     with col3:
         c.execute("SELECT COUNT(*) FROM tasks WHERE status='Open'")
         open_tasks = c.fetchone()[0]
@@ -522,10 +465,10 @@ elif main_menu == t['menu_dispatch']:
     dispatch_tool.render_tool()
 
 # ==========================================
-# 3. MATERIAL MANAGERS (TABS UI)
+# 3. MATERIAL MANAGERS
 # ==========================================
 elif main_menu == t['menu_materials']:
-    st.markdown(f"<h1 style='font-weight: 700; font-size: 24px; margin-bottom: 20px;'>{t['menu_materials'][2:]}</h1>", unsafe_allow_html=True)
+    st.markdown(f"<h1 style='font-weight: 800; margin-bottom: 20px;'>{t['menu_materials'][2:]}</h1>", unsafe_allow_html=True)
     
     tab_mob, tab_ota, tab_oa, tab_lc = st.tabs([t['tab_mob'], t['tab_ota'], t['tab_oa'], t['tab_lc']])
     
@@ -599,22 +542,23 @@ elif main_menu == t['menu_materials']:
 # 4. TOOLS (CASCADING DROPDOWNS)
 # ==========================================
 elif main_menu == t['menu_tools']:
-    st.sidebar.markdown("<hr style='border: 0; border-top: 1px solid #e2e8f0; margin: 16px 0;'>", unsafe_allow_html=True)
+    st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
     
-    clients = list(TOOL_HIERARCHY.keys())
-    selected_client = st.sidebar.selectbox(t['select_client'], clients, key="client_select")
-    st.session_state['selected_client'] = selected_client
+    col1, col2 = st.columns(2)
+    with col1:
+        selected_client = st.selectbox(t['select_client'], list(TOOL_HIERARCHY.keys()), key="client_select")
+        st.session_state['selected_client'] = selected_client
+    with col2:
+        if selected_client:
+            selected_tool_name = st.selectbox(t['select_tool'], list(TOOL_HIERARCHY[selected_client].keys()), key="tool_select")
+        else:
+            st.selectbox(t['select_tool'], [], key="tool_select_empty")
     
-    if selected_client:
-        tools = list(TOOL_HIERARCHY[selected_client].keys())
-        selected_tool_name = st.sidebar.selectbox(t['select_tool'], tools, key="tool_select")
-        
+    if selected_client and selected_tool_name:
         st.markdown(f"""
-        <div class="tool-banner">
+        <div style="background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%) !important; color: #ffffff !important; padding: 15px 25px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3) !important;">
             <h3 style="font-weight: 600; margin-bottom: 4px;">{selected_tool_name}</h3>
             <p style="font-size: 14px; opacity: 0.9;">{t['client_label']}: {selected_client}</p>
         </div>
         """, unsafe_allow_html=True)
-        
-        if selected_tool_name:
-            TOOL_HIERARCHY[selected_client][selected_tool_name]()
+        TOOL_HIERARCHY[selected_client][selected_tool_name]()
