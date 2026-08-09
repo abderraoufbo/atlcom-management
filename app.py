@@ -203,14 +203,14 @@ def get_css():
         div[data-testid="stDataFrame"] div, div[data-testid="stTable"] div {{ color: {text_color} !important; }}
         
         /* ==========================================
-           ULTRA PREMIUM LOGIN UI (NO SCROLL, PERFECT CENTER)
+           ULTRA PREMIUM LOGIN UI (PERFECT CENTER)
            ========================================== */
-        .login-container {{ position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; align-items: center; background: {body_bg}; z-index: 99999; }}
         .login-card {{ 
             background: {login_bg} !important; backdrop-filter: blur(24px) saturate(180%) !important; 
             -webkit-backdrop-filter: blur(24px) saturate(180%) !important; padding: 50px 40px !important; 
             border-radius: 28px !important; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 0 0 1px {glass_border} inset !important; 
-            width: 100% !important; max-width: 440px !important; text-align: center !important;
+            width: 100% !important; max-width: 440px !important; margin: 10vh auto 0 auto !important; 
+            text-align: center !important;
             display: flex !important; flex-direction: column !important; align-items: center !important; border: none !important;
         }}
         .login-icon-wrapper {{ width: 90px; height: 90px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); border-radius: 28px; margin: 0 auto 25px auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(79, 172, 254, 0.4); }}
@@ -240,6 +240,7 @@ def get_css():
             .top-header {{ flex-direction: column; gap: 10px; padding: 10px; }}
             .block-container {{ padding-top: 12rem !important; padding-left: 1rem !important; padding-right: 1rem !important; max-width: 100% !important; }}
             [data-testid="stHorizontalBlock"] {{ flex-direction: column !important; width: 100% !important; align-items: center !important; gap: 10px !important; }}
+            .login-card {{ margin-top: 2vh !important; padding: 30px 20px !important; }}
             .login-card [data-testid="stRadio"] > div {{ flex-direction: column !important; }}
         }}
     </style>
@@ -280,50 +281,52 @@ elif st.session_state.get('role') == 'driver':
     driver_portal.render_portal()
     st.stop()
 elif not st.session_state.get('manager_logged_in'):
-    # --- ULTRA PREMIUM LOGIN PAGE ---
-    st.markdown("<div class='login-container'><div class='login-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='login-icon-wrapper'><span class='login-icon'>🛠️</span></div>", unsafe_allow_html=True)
-    st.markdown("<h1 style='font-weight: 800; margin-bottom: 5px;'>ATLCOM</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='opacity: 0.7; margin-bottom: 30px;'>Management Portal</p>", unsafe_allow_html=True)
-    
-    role = st.radio("Select Role", ["Manager", "Team Leader", "Driver"], horizontal=True)
-    
-    if role == "Manager":
-        pwd = st.text_input("Password", type="password")
-        if st.button("Login", type="primary", use_container_width=True):
-            if pwd == "admin1":
-                st.session_state.manager_logged_in = True
-                st.session_state.role = 'manager'
-                st.query_params['role'] = 'manager'
+    # --- ULTRA PREMIUM LOGIN PAGE (Centered natively) ---
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.markdown("<div class='login-card'>", unsafe_allow_html=True)
+        st.markdown("<div class='login-icon-wrapper'><span class='login-icon'>🛠️</span></div>", unsafe_allow_html=True)
+        st.markdown("<h1 style='font-weight: 800; margin-bottom: 5px;'>ATLCOM</h1>", unsafe_allow_html=True)
+        st.markdown("<p style='opacity: 0.7; margin-bottom: 30px;'>Management Portal</p>", unsafe_allow_html=True)
+        
+        role = st.radio("Select Role", ["Manager", "Team Leader", "Driver"], horizontal=True)
+        
+        if role == "Manager":
+            pwd = st.text_input("Password", type="password")
+            if st.button("Login", type="primary", use_container_width=True):
+                if pwd == "admin1":
+                    st.session_state.manager_logged_in = True
+                    st.session_state.role = 'manager'
+                    st.query_params['role'] = 'manager'
+                    st.rerun()
+                else:
+                    st.error("Incorrect password")
+        elif role == "Team Leader":
+            lid = st.text_input("Leader ID")
+            if st.button("Login", type="primary", use_container_width=True):
+                conn = get_connection()
+                df = pd.read_sql_query("SELECT * FROM teams WHERE leader_id=%(lid)s", conn, params={"lid": lid})
+                release_connection(conn)
+                if not df.empty:
+                    st.session_state.leader_logged_in = True
+                    st.session_state.role = 'leader'
+                    st.session_state.leader_data = df.iloc[0].to_dict()
+                    st.query_params['role'] = 'leader'
+                    st.query_params['lid'] = lid
+                    st.rerun()
+                else:
+                    st.error("Invalid Leader ID")
+        elif role == "Driver":
+            dname = st.text_input("Driver Name")
+            if st.button("Login", type="primary", use_container_width=True):
+                st.session_state.driver_logged_in = True
+                st.session_state.role = 'driver'
+                st.session_state.driver_name = dname
+                st.query_params['role'] = 'driver'
+                st.query_params['driver'] = dname
                 st.rerun()
-            else:
-                st.error("Incorrect password")
-    elif role == "Team Leader":
-        lid = st.text_input("Leader ID")
-        if st.button("Login", type="primary", use_container_width=True):
-            conn = get_connection()
-            df = pd.read_sql_query("SELECT * FROM teams WHERE leader_id=%(lid)s", conn, params={"lid": lid})
-            release_connection(conn)
-            if not df.empty:
-                st.session_state.leader_logged_in = True
-                st.session_state.role = 'leader'
-                st.session_state.leader_data = df.iloc[0].to_dict()
-                st.query_params['role'] = 'leader'
-                st.query_params['lid'] = lid
-                st.rerun()
-            else:
-                st.error("Invalid Leader ID")
-    elif role == "Driver":
-        dname = st.text_input("Driver Name")
-        if st.button("Login", type="primary", use_container_width=True):
-            st.session_state.driver_logged_in = True
-            st.session_state.role = 'driver'
-            st.session_state.driver_name = dname
-            st.query_params['role'] = 'driver'
-            st.query_params['driver'] = dname
-            st.rerun()
-            
-    st.markdown("</div></div>", unsafe_allow_html=True)
+                
+        st.markdown("</div>", unsafe_allow_html=True)
     st.stop()
 
 # ==========================================
