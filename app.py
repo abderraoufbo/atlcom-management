@@ -18,7 +18,7 @@ from tools import leader_portal
 from tools import driver_portal
 
 # --- PAGE CONFIG ---
-st.set_page_config(page_title="ATLCOM Management", page_icon="favicon.ico", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="ATLCOM Management", page_icon="altecom.png", layout="wide", initial_sidebar_state="collapsed")
 
 # --- COMPREHENSIVE TRANSLATIONS DICTIONARY ---
 translations = {
@@ -294,7 +294,7 @@ elif not st.session_state.get('manager_logged_in'):
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.markdown("<div class='login-card'>", unsafe_allow_html=True)
-        st.markdown("<div class='login-icon-wrapper'><img src='favicon.ico' alt='logo'></div>", unsafe_allow_html=True)
+        st.markdown("<div class='login-icon-wrapper'><img src='altecom.png' alt='logo'></div>", unsafe_allow_html=True)
         st.markdown("<h1 style='font-weight: 800; margin-bottom: 5px;'>ATLCOM</h1>", unsafe_allow_html=True)
         st.markdown("<p style='opacity: 0.7; margin-bottom: 30px;'>Management Portal</p>", unsafe_allow_html=True)
         
@@ -361,7 +361,7 @@ st.markdown("<div class='top-header'>", unsafe_allow_html=True)
 col1, col2, col3 = st.columns([1.2, 3, 2.5])
 
 with col1:
-    st.markdown("<div class='header-logo'><img src='favicon.ico' alt='logo'> ATLCOM</div>", unsafe_allow_html=True)
+    st.markdown("<div class='header-logo'><img src='altecom.png' alt='logo'> ATLCOM</div>", unsafe_allow_html=True)
 
 with col2:
     main_menu = st.radio("Menu", [t['menu_dashboard'], t['menu_dispatch'], t['menu_materials'], t['menu_tools']], horizontal=True, label_visibility="collapsed", key="top_nav")
