@@ -379,25 +379,21 @@ with col2:
 with col3:
     st.markdown("<div class='header-controls'>", unsafe_allow_html=True)
     
+    # --- LANGUAGE SELECTOR ---
     lang_options = ['🇬🇧 EN', '🇫🇷 FR', '🇩🇿 AR']
-    current_lang_val = f"{'🇬🇧' if st.session_state.lang == 'EN' else '🇫🇷' if st.session_state.lang == 'FR' else '🇩🇿'} {st.session_state.lang}"
-    lang_idx = lang_options.index(current_lang_val) if current_lang_val in lang_options else 0
-    
-    lang = st.selectbox("Lang", lang_options, index=lang_idx, key='lang_select', label_visibility="collapsed")
-    new_lang = lang.split(' ')[1]
-    if new_lang != st.session_state.lang:
-        st.session_state.lang = new_lang
-        st.rerun()
+    def update_lang():
+        st.session_state.lang = st.session_state.lang_select.split(' ')[1]
         
-    theme_options = ['☀️ Light', '🌙 Dark']
-    current_theme_val = f"{'☀️' if st.session_state.theme == 'Light' else '🌙'} {st.session_state.theme}"
-    theme_idx = theme_options.index(current_theme_val) if current_theme_val in theme_options else 0
+    lang_idx = next((i for i, opt in enumerate(lang_options) if st.session_state.lang in opt), 0)
+    st.selectbox("Lang", lang_options, index=lang_idx, key='lang_select', label_visibility="collapsed", on_change=update_lang)
     
-    theme = st.selectbox("Theme", theme_options, index=theme_idx, key='theme_select', label_visibility="collapsed")
-    new_theme = theme.split(' ')[1]
-    if new_theme != st.session_state.theme:
-        st.session_state.theme = new_theme
-        st.rerun()
+    # --- THEME SELECTOR ---
+    theme_options = ['☀️ Light', '🌙 Dark']
+    def update_theme():
+        st.session_state.theme = st.session_state.theme_select.split(' ')[1]
+        
+    theme_idx = next((i for i, opt in enumerate(theme_options) if st.session_state.theme in opt), 0)
+    st.selectbox("Theme", theme_options, index=theme_idx, key='theme_select', label_visibility="collapsed", on_change=update_theme)
         
     if st.button("⏻ Logout", key="logout_btn"):
         st.session_state.clear()
@@ -405,9 +401,6 @@ with col3:
         st.rerun()
 
     st.markdown("</div>", unsafe_allow_html=True)
-
-st.markdown("</div>", unsafe_allow_html=True)
-
 # ==========================================
 # 1. DASHBOARD
 # ==========================================
